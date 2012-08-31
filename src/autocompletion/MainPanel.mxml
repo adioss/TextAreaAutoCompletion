@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()" height="100%" width="100%">
+    <mx:Script>
+        <![CDATA[
+        import mx.collections.ArrayCollection;
+
+        private var m_autoCompletion:AutoCompletion;
+
+
+        [Embed(source="/assets/camel-spring-2.9.1.xml")]
+        private var CAMEL_SPRING_XSD:Class;
+
+        private function init():void {
+            m_autoCompletion = new AutoCompletion(textArea, new ArrayCollection([CAMEL_SPRING_XSD.data as XML]));
+            textArea.text = "";
+        }
+        ]]>
+    </mx:Script>
+    <mx:HBox horizontalAlign="left" width="100%" height="100%">
+        <mx:TextArea id="textArea" height="100%" width="75%" horizontalCenter="true"/>
+    </mx:HBox>
+
+</mx:Panel>
