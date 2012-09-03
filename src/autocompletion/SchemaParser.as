@@ -2,39 +2,27 @@ package autocompletion {
 import autocompletion.model.position.XmlAttributeEditionPosition;
 import autocompletion.model.position.XmlAttributePosition;
 import autocompletion.model.position.XmlBeginTagPosition;
-import autocompletion.model.schema.SimpleSchemaDescription;
+import autocompletion.model.schema.SchemaDescription;
+import autocompletion.model.schema.SchemaInformation;
 
 import flash.utils.Dictionary;
 
 import mx.collections.ArrayCollection;
 
 public class SchemaParser {
-    public static const XS_NAMESPACE:String = "xs";
     public static const TNS_NAMESPACE:String = "tns";
     public static const PROCESS_TAG:String = "processTag";
     public static const PROCESS_ATTRIBUTE:String = "processAttribute";
-    private static const W3_ORG_XMLSCHEMA:String = "http://www.w3.org/2001/XMLSchema";
+    private static const DEFAULT_SCHEMA_INDEX:String = "default";
 
-    [Embed(source="/assets/camel-spring-2.9.1.xml")]
-    private var CAMEL_SPRING_XSD:Class;
 
-    public static var xsNameSpace:Namespace;
-    public static var tnsNameSpace:Namespace;
-    private var m_currentSchema:XML;
-    private var m_schemaDescriptions:Dictionary = new Dictionary();
-    private var m_abstractComplexTypes:Dictionary = new Dictionary();
-    private var m_complexTypes:Dictionary = new Dictionary();
-    private var m_elements:Dictionary = new Dictionary();
-    private var m_simpleTypes:Dictionary = new Dictionary();
+//    private var m_currentSchema:XML;
+    private var m_schemaDescriptions:Dictionary = new Dictionary();// SchemaDescription
+    private var m_currentSchemaDescription:SchemaDescription;
+
 
     public function SchemaParser(schemas:ArrayCollection) {
-        m_currentSchema = CAMEL_SPRING_XSD.data as XML;
-        xsNameSpace = m_currentSchema.namespace(SchemaParser.XS_NAMESPACE);
-        tnsNameSpace = m_currentSchema.namespace(SchemaParser.TNS_NAMESPACE);
         initializeSchemas(schemas);
-        initializeElements();
-        initializeComplexTypes();
-        initializeSimpleType();
     }
 
     //region Initialisation
@@ -45,42 +33,90 @@ public class SchemaParser {
         }
     }
 
-    private function initializeSimpleType():void {
-        var simpleTypes:XMLList = m_currentSchema.xsNameSpace::simpleType;
+    private function extractNameSpace(schema:XML):void {
+        var namespaceDeclarations:Array = schema.namespaceDeclarations();
+        var schemaDescription:SchemaDescription = new SchemaDescription(schema);
+        var schemaInformation:SchemaInformation = new SchemaInformation();
+        var prefix:String;
+        for each (var namespaceDeclaration:Namespace in namespaceDeclarations) {
+            if (namespaceDeclaration.uri == SchemaInformation.STANDARD_URI) {
+                schemaInformation.standardPrefix = namespaceDeclaration.prefix.toString();
+                schemaInformation.standardNameSpace = namespaceDeclaration;
+            } else {
+                schemaInformation.schemaPrefix = namespaceDeclaration.prefix.toString();
+                schemaInformation.schemaUri = namespaceDeclaration.uri.toString();
+                schemaInformation.schemaNameSpace = namespaceDeclaration;
+            }
+        }
+        schemaDescription.schemaInformation = schemaInformation;
+        schemaDescription.simpleTypes = getSchemaSimpleTypes(schema, schemaInformation.standardNameSpace);
+        schemaDescription.elements = getSchemaElements(schema, schemaInformation.standardNameSpace);
+        schemaDescription.complexTypes = getSchemaComplexTypes(schema, schemaInformation.standardNameSpace);
+        schemaDescription.abstractComplexTypes = getAbstractComplexTypes(schema, schemaInformation.standardNameSpace);
+        prefix = m_schemaDescriptions.length > 0 ? schemaInformation.schemaPrefix : DEFAULT_SCHEMA_INDEX;
+        m_schemaDescriptions[prefix] = schemaDescription;
+    }
+
+    private function getSchemaSimpleTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+        var result:Dictionary = new Dictionary();
+        var simpleTypes:XMLList = schema.standardNameSpace::simpleType;
         for each (var simpleType:XML in simpleTypes) {
-            m_simpleTypes[String(simpleType.attribute("name"))] = simpleType;
+            result[String(simpleType.attribute("name"))] = simpleType;
         }
+        return result;
     }
 
-    public function initializeElements():void {
-        var elements:XMLList = m_currentSchema.xsNameSpace::element;
+    public function getSchemaElements(schema:XML, standardNameSpace:Namespace):Dictionary {
+        var result:Dictionary = new Dictionary();
+        var elements:XMLList = schema.standardNameSpace::element;
         for each (var element:XML in elements) {
-            m_elements[String(element.attribute("name"))] = element;
+            result[String(element.attribute("name"))] = element;
         }
+        return result;
     }
 
-    public function initializeComplexTypes():void {
-        var complexTypes:XMLList = m_currentSchema.xsNameSpace::complexType;
+    public function getSchemaComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+        var result:Dictionary = new Dictionary();
+        var complexTypes:XMLList = schema.standardNameSpace::complexType;
+        for each (var complexType:XML in complexTypes) {
+            var name:String = complexType.attribute("name");
+            result[name] = complexType;
+        }
+        return result;
+    }
+
+    public function getAbstractComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+        var result:Dictionary = new Dictionary();
+        var complexTypes:XMLList = schema.standardNameSpace::complexType;
         for each (var complexType:XML in complexTypes) {
             var name:String = complexType.attribute("name");
             if ("@abstract" in complexType && parseBooleanAttribute(complexType, "abstract")) {
-                m_abstractComplexTypes[name] = complexType;
-            } else {
-                m_complexTypes[name] = complexType;
+                result[name] = complexType;
             }
         }
+        return result;
     }
 
     //endregion
 
     public function retrieveTagCompletionInformation(position:XmlBeginTagPosition):ArrayCollection {
-        if (position.parentTagName) {
+        if (position.parentTagName != null) {
+            fillCurrentSchemaDescription(position.parentTagName);
             return findAvailableChildren(position.parentTagName, position.presetChars, PROCESS_TAG);
         }
         return null;
     }
 
+    private function fillCurrentSchemaDescription(parentTagName:String):void {
+        var index:String = DEFAULT_SCHEMA_INDEX;
+        if (parentTagName.indexOf(":") != 0) {
+
+        }
+        m_currentSchemaDescription = m_schemaDescriptions[index];
+    }
+
     public function retrieveAttributeCompletionInformation(position:XmlAttributePosition, filterFunction:Function = null):ArrayCollection /* of String */ {
+        fillCurrentSchemaDescription(position.currentTagName);
         var availableChildren:ArrayCollection = findAvailableChildren(position.currentTagName, position.presetChars, PROCESS_ATTRIBUTE, filterFunction);
         if (position.alreadyUsedAttributes != null) {
             for each (var alreadyUsedAttribute:String in position.alreadyUsedAttributes) {
@@ -93,8 +129,9 @@ public class SchemaParser {
     }
 
     public function retrieveAttributeEditionCompletionInformation(position:XmlAttributeEditionPosition):ArrayCollection /* of String */ {
+        fillCurrentSchemaDescription(position.currentTagName);
         var result:ArrayCollection = null;
-        var simpleType:XML = m_simpleTypes[position.currentAttributeName];
+        var simpleType:XML = m_currentSchemaDescription.simpleTypes[position.currentAttributeName];
         if (simpleType != null) {
             var restriction:XMLList = simpleType.children();
             if (restriction != null && restriction.children() != null) {
@@ -106,37 +143,23 @@ public class SchemaParser {
             }
         } else {
             // not match in simpleTypes, find it to see if it's boolean type attribute
-            var complexTypeName:String = String(m_currentSchema.xsNameSpace::element
+            var schema:XML = m_currentSchemaDescription.schema;
+            var standardNameSpace:Namespace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
+            var complexTypeName:String = String(schema.standardNameSpace::element
                     .(attribute("name") == position.currentTagName)
                     .attribute("type").toXMLString())
                     .replace("tns:", "");
             // TODO: match ALL...not only here...
-            var simpleTypeName:String = String(m_currentSchema.xsNameSpace::complexType
-                    .(attribute("name") == complexTypeName)
-                    ..xsNameSpace::attribute
+            var simpleTypeName:String = String(schema.standardNameSpace::complexType
+                    .(attribute("name") == complexTypeName)..*::attribute
                     .(attribute("name") == position.currentAttributeName)
                     .attribute("type").toXMLString())
-                    .replace("xs:", "");
+                    .replace(m_currentSchemaDescription.schemaInformation.standardPrefix + ":", "");
             if (simpleTypeName == "boolean") {
                 result = new ArrayCollection(["true", "false"]);
             }
         }
         return result;
-    }
-
-    private function extractNameSpace(schema:XML):void {
-        var namespaceDeclarations:Array = schema.namespaceDeclarations();
-        var simpleSchema:SimpleSchemaDescription;
-        for each (var namespaceDeclaration:Namespace in namespaceDeclarations) {
-            simpleSchema = new SimpleSchemaDescription();
-            if (namespaceDeclaration.uri == W3_ORG_XMLSCHEMA) {
-                simpleSchema.standardPrefix = namespaceDeclaration.prefix.toString();
-            } else {
-                simpleSchema.schemaPrefix = namespaceDeclaration.prefix.toString();
-                simpleSchema.schemaUri = namespaceDeclaration.uri.toString();
-            }
-            m_schemaDescriptions[simpleSchema.schemaPrefix] = simpleSchema;
-        }
     }
 
     //region Tag processing
@@ -145,13 +168,13 @@ public class SchemaParser {
     }
 
     private function findComplexType(parent:String):XML {
-        var value:XML = m_elements[parent];
+        var value:XML = m_currentSchemaDescription.elements[parent];
         if (value == null) {
             return null;
         }
         var type:String = value.attribute("type");
         var convertType:String = type.replace(SchemaParser.TNS_NAMESPACE + ":", "");
-        var complexType:XML = m_complexTypes[convertType];
+        var complexType:XML = m_currentSchemaDescription.complexTypes[convertType];
         return complexType;
     }
 
@@ -214,9 +237,9 @@ public class SchemaParser {
 
     private function processExtension(baseType:String, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
         var result:ArrayCollection = new ArrayCollection();
-        var complexType:XML = m_abstractComplexTypes[baseType];
+        var complexType:XML = m_currentSchemaDescription.abstractComplexTypes[baseType];
         if (complexType == null) {
-            complexType = m_complexTypes[baseType];
+            complexType = m_currentSchemaDescription.complexTypes[baseType];
         }
         append(result, processComplexType(complexType, presetChars, type, filterFunction));
         return result;

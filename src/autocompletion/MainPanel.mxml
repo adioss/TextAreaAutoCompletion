@@ -11,7 +11,7 @@
         private var CAMEL_SPRING_XSD:Class;
 
         private function init():void {
-            m_autoCompletion = new AutoCompletion(textArea, new ArrayCollection([CAMEL_SPRING_XSD.data as XML]));
+            m_autoCompletion = new AutoCompletion(textArea, new ArrayCollection([CAMEL_SPRING_XSD.data as XML]), true);
             textArea.text = "";
         }
         ]]>

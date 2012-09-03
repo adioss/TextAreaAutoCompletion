@@ -40,19 +40,20 @@ public class AutoCompletion {
     private var m_xmlPositionHelper:XmlPositionHelper;
     private var m_schemaParser:SchemaParser;
     private var m_currentXmlPosition:XmlPosition;
+    private var m_generateSchemaHeader:Boolean;
 
     // textarea tools
     private var m_textAreaHelper:TextAreaHelper;
-
     // autocomplete selection with combobox
     private var m_autoCompleteList:List = new List();
     private var m_globalAutoCompleteListContent:Array = new Array();
-    private var m_autoCompleteCanvas:Canvas = new Canvas();
 
+    private var m_autoCompleteCanvas:Canvas = new Canvas();
     private var m_currentTypedWord:String;
 
-    public function AutoCompletion(textArea:TextArea, schemas:ArrayCollection) {
+    public function AutoCompletion(textArea:TextArea, schemas:ArrayCollection, generateSchemaHeader:Boolean) {
         m_textArea = textArea;
+        m_generateSchemaHeader = generateSchemaHeader;
         m_xmlPositionHelper = new XmlPositionHelper(m_textArea);
         m_schemaParser = new SchemaParser(schemas);
         m_textAreaHelper = new TextAreaHelper();
