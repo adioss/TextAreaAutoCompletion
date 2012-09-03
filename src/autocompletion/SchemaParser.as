@@ -10,7 +10,6 @@ import flash.utils.Dictionary;
 import mx.collections.ArrayCollection;
 
 public class SchemaParser {
-    public static const TNS_NAMESPACE:String = "tns";
     public static const PROCESS_TAG:String = "processTag";
     public static const PROCESS_ATTRIBUTE:String = "processAttribute";
     private static const DEFAULT_SCHEMA_INDEX:String = "default";
@@ -148,7 +147,7 @@ public class SchemaParser {
             var complexTypeName:String = String(schema.standardNameSpace::element
                     .(attribute("name") == position.currentTagName)
                     .attribute("type").toXMLString())
-                    .replace("tns:", "");
+                    .replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
             // TODO: match ALL...not only here...
             var simpleTypeName:String = String(schema.standardNameSpace::complexType
                     .(attribute("name") == complexTypeName)..*::attribute
@@ -173,7 +172,7 @@ public class SchemaParser {
             return null;
         }
         var type:String = value.attribute("type");
-        var convertType:String = type.replace(SchemaParser.TNS_NAMESPACE + ":", "");
+        var convertType:String = type.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
         var complexType:XML = m_currentSchemaDescription.complexTypes[convertType];
         return complexType;
     }
@@ -208,7 +207,7 @@ public class SchemaParser {
             var complexContentName:String = complexContent.localName();
             if ("extension" == complexContentName) {
                 var base:String = complexContent.attribute("base");
-                var baseType:String = base.replace(SchemaParser.TNS_NAMESPACE + ":", "");
+                var baseType:String = base.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
                 append(result, processExtension(baseType, presetChars, type, filterFunction));
             } else if ("sequence" == complexContentName) {
                 append(result, processSequence(complexContent, presetChars, type));
@@ -253,7 +252,7 @@ public class SchemaParser {
             var sequenceName:String = sequenceChild.localName();
             if ("element" == sequenceName && type == PROCESS_TAG) {
                 var element:String = sequenceChild.attribute("ref");
-                var item:String = element.replace(SchemaParser.TNS_NAMESPACE + ":", "");
+                var item:String = element.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
                 appendItem(result, item, presetChars);
             } else if ("choice" == sequenceName) {
                 append(result, processChoice(sequenceChild, presetChars, type));
@@ -270,7 +269,7 @@ public class SchemaParser {
             var choiceName:String = choiceChild.localName();
             if ("element" == choiceName && type == PROCESS_TAG) {
                 var ref:String = choiceChild.attribute("ref");
-                var item:String = ref.replace(SchemaParser.TNS_NAMESPACE + ":", "");
+                var item:String = ref.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
                 appendItem(result, item, presetChars);
             }
         }
