@@ -56,7 +56,7 @@ public class SchemaParser {
         m_schemaDescriptions[prefix] = schemaDescription;
     }
 
-    private function getSchemaSimpleTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+    private static function getSchemaSimpleTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
         var result:Dictionary = new Dictionary();
         var simpleTypes:XMLList = schema.standardNameSpace::simpleType;
         for each (var simpleType:XML in simpleTypes) {
@@ -65,7 +65,7 @@ public class SchemaParser {
         return result;
     }
 
-    public function getSchemaElements(schema:XML, standardNameSpace:Namespace):Dictionary {
+    public static function getSchemaElements(schema:XML, standardNameSpace:Namespace):Dictionary {
         var result:Dictionary = new Dictionary();
         var elements:XMLList = schema.standardNameSpace::element;
         for each (var element:XML in elements) {
@@ -74,7 +74,7 @@ public class SchemaParser {
         return result;
     }
 
-    public function getSchemaComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+    public static function getSchemaComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
         var result:Dictionary = new Dictionary();
         var complexTypes:XMLList = schema.standardNameSpace::complexType;
         for each (var complexType:XML in complexTypes) {
@@ -84,7 +84,7 @@ public class SchemaParser {
         return result;
     }
 
-    public function getAbstractComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+    public static function getAbstractComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
         var result:Dictionary = new Dictionary();
         var complexTypes:XMLList = schema.standardNameSpace::complexType;
         for each (var complexType:XML in complexTypes) {
@@ -279,7 +279,7 @@ public class SchemaParser {
     //endregion
 
     //region Utils
-    private function appendItem(result:ArrayCollection, item:String, presetChars:String):void {
+    private static function appendItem(result:ArrayCollection, item:String, presetChars:String):void {
         if (presetChars != null && presetChars != "" && item.indexOf(presetChars) != 0) {
             return;
         }
