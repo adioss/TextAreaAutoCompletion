@@ -224,7 +224,7 @@ public class SchemaParser {
         return result;
     }
 
-    private function appendAttribute(complexType:XML, result:ArrayCollection, presetChars:String, filterFunction:Function = null):void {
+    private static function appendAttribute(complexType:XML, result:ArrayCollection, presetChars:String, filterFunction:Function = null):void {
         if (filterFunction != null) {
             if (filterFunction(complexType)) {
                 appendItem(result, complexType.attribute("name"), presetChars);

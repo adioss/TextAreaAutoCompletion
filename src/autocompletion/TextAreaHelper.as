@@ -23,7 +23,7 @@ public class TextAreaHelper {
     public function TextAreaHelper() {
     }
 
-    public function getTextAreaCurrentGlobalCursorPosition(textArea:TextArea, caretOffset:int = 0):Point {
+    public static function getTextAreaCurrentGlobalCursorPosition(textArea:TextArea, caretOffset:int = 0):Point {
         return textArea.getTextField().localToGlobal(getTextAreaCurrentCursorPosition(textArea, caretOffset));
     }
 
@@ -81,9 +81,7 @@ public class TextAreaHelper {
 
     private static function getPreviousCharacterIndex(text:String, startIndex:int):int {
         for (var i:int = startIndex - 1; i >= 0; i--) {
-            if (text.charAt(i) == "\r") {
-                continue;
-            } else {
+            if (text.charAt(i) != "\r") {
                 return i;
             }
         }
@@ -92,9 +90,7 @@ public class TextAreaHelper {
 
     private static function getNextCharacterIndex(text:String, startIndex:int):int {
         for (var i:int = startIndex + 1; i < text.length; i++) {
-            if (text.charAt(i) == "\r") {
-                continue;
-            } else {
+            if (text.charAt(i) != "\r") {
                 return i;
             }
         }
@@ -116,9 +112,9 @@ public class TextAreaHelper {
         // delete useless spaces between words, fist one not a char, like "<        i" => "<i"
         content = content.replace(/(<)(\s+)(\w)/gi, "$1$3");
         // delete attribute content
-        content = content.replace(/(=\")(\s*\w*\s*)(\")/gi, "$1$3");
+        content = content.replace(/(=")(\s*\w*\s*)(")/gi, "$1$3");
         // delete space between " and >
-        content = content.replace(/(\")(\s+)(\>)/gi, "$1$3");
+        content = content.replace(/(")(\s+)(>)/gi, "$1$3");
         return content;
     }
 }

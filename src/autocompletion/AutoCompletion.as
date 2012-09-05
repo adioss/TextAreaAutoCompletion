@@ -114,7 +114,7 @@ public class AutoCompletion {
         }
         if (tagCompletions != null) {
             initializeAutoCompleteList(tagCompletions.source, presetChars);
-            var currentPosition:Point = m_textAreaHelper.getTextAreaCurrentGlobalCursorPosition(m_textArea,
+            var currentPosition:Point = TextAreaHelper.getTextAreaCurrentGlobalCursorPosition(m_textArea,
                     havePreset ? presetChars.length : 0);
             var presetOffset:int = havePreset ? presetChars.length : 0;
             beginPosition = m_textArea.selectionBeginIndex - presetOffset;

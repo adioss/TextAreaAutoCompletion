@@ -253,7 +253,7 @@ public class XmlPositionHelper {
         var processedChar:String;
         var currentCollectedChars:String = "";
         for (var contentLength:int = 0; contentLength < contentToEnd.length; contentLength++) {
-            processedChar = content.charAt(contentLength);
+            processedChar = contentToEnd.charAt(contentLength);
             switch (processedChar) {
                 case  " " || "\"":
                     currentCollectedChars = "";

@@ -4,14 +4,11 @@
         <![CDATA[
         import mx.collections.ArrayCollection;
 
-        private var m_autoCompletion:AutoCompletion;
-
-
         [Embed(source="/assets/camel-spring-2.9.1.xml")]
         private var CAMEL_SPRING_XSD:Class;
 
         private function init():void {
-            m_autoCompletion = new AutoCompletion(textArea, new ArrayCollection([CAMEL_SPRING_XSD.data as XML]), true);
+            var m_autoCompletion:AutoCompletion = new AutoCompletion(textArea, new ArrayCollection([CAMEL_SPRING_XSD.data as XML]), true);
             textArea.text = "";
         }
         ]]>
