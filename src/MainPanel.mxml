@@ -10,7 +10,7 @@
         private var CAMEL_SPRING_XSD:Class;
 
         private function init():void {
-            var m_autoCompletion:AutoCompletion = new AutoCompletion(textArea, new ArrayCollection([CAMEL_SPRING_XSD.data as XML]), true);
+            var autoCompletion:AutoCompletion = new AutoCompletion(textArea, new ArrayCollection([CAMEL_SPRING_XSD.data as XML]), true);
             textArea.text = "";
         }
         ]]>
