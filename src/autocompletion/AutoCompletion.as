@@ -27,6 +27,11 @@ import mx.managers.PopUpManager;
 
 use namespace mx_internal;
 
+/**
+ * Manage autocompletion:
+ * - show/position list over textarea
+ * - manage key/mouse events
+ */
 public class AutoCompletion {
     private static var MAX_ROW_COUNT:int = 10;
     private static var SELECTION_COLOR:int = 0xA4D3EE;

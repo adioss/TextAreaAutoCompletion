@@ -5,6 +5,15 @@
  * Time: 01:07
  *
  */
+
+/**
+ * Determine what is edited for the current cursor position
+ * - a tagname (<stuff) and completion for current set chars and depending found parent for current position
+ * - an attribute and completion for current tagname/position
+ * - an attribute value and authorized values if necessary
+ * - a tag content
+ * - an end of tag
+ */
 package autocompletion {
 import autocompletion.model.position.XmlAttributeEditionPosition;
 import autocompletion.model.position.XmlAttributePosition;

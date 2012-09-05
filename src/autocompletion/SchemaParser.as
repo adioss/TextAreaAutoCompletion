@@ -9,14 +9,19 @@ import flash.utils.Dictionary;
 
 import mx.collections.ArrayCollection;
 
+/**
+ * Bean used to parse multiple XSD
+ * - pre parse xsd to accelerate search of
+ * - find available tagnames for a parent tagname
+ * - find available attributes for a tag name
+ * - find available values for an attribute
+ */
 public class SchemaParser {
     public static const PROCESS_TAG:String = "processTag";
     public static const PROCESS_ATTRIBUTE:String = "processAttribute";
     private static const DEFAULT_SCHEMA_INDEX:String = "default";
 
-
-//    private var m_currentSchema:XML;
-    private var m_schemaDescriptions:Dictionary = new Dictionary();// SchemaDescription
+    private var m_schemaDescriptions:Dictionary = new Dictionary();// of SchemaDescription
     private var m_currentSchemaDescription:SchemaDescription;
 
 

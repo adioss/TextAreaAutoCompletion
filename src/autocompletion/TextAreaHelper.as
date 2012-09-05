@@ -15,6 +15,11 @@ import mx.core.mx_internal;
 
 use namespace mx_internal;
 
+/**
+ * Tools for textarea
+ * - clean unusable chars
+ * - find position of a cursor
+ */
 public class TextAreaHelper {
     private static var HEIGHT_PADDING:int = 2;
     private static const DEFAULT_CHAR_BOUNDARIES_WIDTH:int = 0;
