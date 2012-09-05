@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Application
         xmlns:mx="http://www.adobe.com/2006/mxml"
-        xmlns:ac="autocompletion.*"
+        xmlns:local="*"
         layout="absolute">
 
-    <ac:MainPanel id="mainPanel"/>
+    <local:MainPanel id="mainPanel"/>
 </mx:Application>
