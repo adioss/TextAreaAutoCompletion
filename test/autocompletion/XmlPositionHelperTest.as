@@ -10,6 +10,7 @@ import autocompletion.model.position.XmlAttributeEditionPosition;
 import autocompletion.model.position.XmlAttributePosition;
 import autocompletion.model.position.XmlBeginTagPosition;
 import autocompletion.model.position.XmlContentPosition;
+import autocompletion.model.position.XmlEndTagPosition;
 import autocompletion.model.position.XmlPosition;
 
 import flexunit.framework.*;
@@ -296,6 +297,40 @@ public class XmlPositionHelperTest {
         Assert.assertEquals(xmlAttributePositionTested.alreadyUsedAttributes.length, 2);
         Assert.assertTrue(xmlAttributePositionTested.alreadyUsedAttributes.contains("id"));
         Assert.assertTrue(xmlAttributePositionTested.alreadyUsedAttributes.contains("shareUnitOfWork"));
+    }
+
+    [Test]
+    public function shouldCompleteEndTag():void {
+        var currentPositionTested:XmlPosition;
+        var currentPosition:XmlEndTagPosition;
+
+        m_textArea.text = "<FIRSTNAME></FI";
+        m_textArea.selectionBeginIndex = m_textArea.text.length;
+        currentPositionTested = m_xmlPositionHelper.getCurrentXmlPosition();
+        Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
+        currentPosition = XmlEndTagPosition(currentPositionTested);
+        Assert.assertEquals(currentPosition.associatedTagName, "FIRSTNAME");
+
+        m_textArea.text = "<FIRSTNAME></";
+        m_textArea.selectionBeginIndex = m_textArea.text.length;
+        currentPositionTested = m_xmlPositionHelper.getCurrentXmlPosition();
+        Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
+        currentPosition = XmlEndTagPosition(currentPositionTested);
+        Assert.assertEquals(currentPosition.associatedTagName, "FIRSTNAME");
+
+        m_textArea.text = "<FIRSTNAME id=\"te st\" other=\"other\" ></";
+        m_textArea.selectionBeginIndex = m_textArea.text.length;
+        currentPositionTested = m_xmlPositionHelper.getCurrentXmlPosition();
+        Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
+        currentPosition = XmlEndTagPosition(currentPositionTested);
+        Assert.assertEquals(currentPosition.associatedTagName, "FIRSTNAME");
+
+        m_textArea.text = "<FIRSTNAME id=\"te st\" other=\"other\" ></OTH";
+        m_textArea.selectionBeginIndex = m_textArea.text.length;
+        currentPositionTested = m_xmlPositionHelper.getCurrentXmlPosition();
+        Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
+        currentPosition = XmlEndTagPosition(currentPositionTested);
+        Assert.assertNull(currentPosition.associatedTagName);
     }
 }
 }
