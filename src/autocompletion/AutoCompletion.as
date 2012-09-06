@@ -149,13 +149,17 @@ public class AutoCompletion {
                 currentTypedWord = currentTypedWord.substring(0, currentTypedWord.length - 1);
                 refreshListAndPosition(endPosition > 0 ? endPosition - 1 : endPosition);
             }
-        } else if (keyCode != Keyboard.CONTROL) {
+        } else if (isValidKeyCode(keyCode)) {
             var nextCharacter:String = String.fromCharCode(charCode);
             endPosition += 1;
             currentTypedWord += nextCharacter;
             appendCharToTextArea(nextCharacter); // update text area
             updateAutoCompleteList(); // update list
         }
+    }
+
+    private function isValidKeyCode(keyCode:uint):Boolean {
+        return keyCode != Keyboard.CONTROL && keyCode != Keyboard.SHIFT;
     }
 
     private function refreshAfterHorizontalNavigation(keyCodeHorizontalNavigation:uint):void {

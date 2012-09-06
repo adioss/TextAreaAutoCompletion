@@ -200,7 +200,7 @@ public class SchemaParser {
         } else if (complexTypeLocalName == "attribute" && type == PROCESS_ATTRIBUTE) {
             appendAttribute(complexType, result, presetChars, filterFunction);
         } else {
-            // TODO sur attribut par exemple
+            // TODO in attribute for example
             // Alert.show("processComplexType?? : " + complexTypeLocalName);
         }
     }
@@ -227,16 +227,6 @@ public class SchemaParser {
             }
         }
         return result;
-    }
-
-    private static function appendAttribute(complexType:XML, result:ArrayCollection, presetChars:String, filterFunction:Function = null):void {
-        if (filterFunction != null) {
-            if (filterFunction(complexType)) {
-                appendItem(result, complexType.attribute("name"), presetChars);
-            }
-        } else {
-            appendItem(result, complexType.attribute("name"), presetChars);
-        }
     }
 
     private function processExtension(baseType:String, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
@@ -284,6 +274,16 @@ public class SchemaParser {
     //endregion
 
     //region Utils
+    private static function appendAttribute(complexType:XML, result:ArrayCollection, presetChars:String, filterFunction:Function = null):void {
+        if (filterFunction != null) {
+            if (filterFunction(complexType)) {
+                appendItem(result, complexType.attribute("name"), presetChars);
+            }
+        } else {
+            appendItem(result, complexType.attribute("name"), presetChars);
+        }
+    }
+
     private static function appendItem(result:ArrayCollection, item:String, presetChars:String):void {
         if (presetChars != null && presetChars != "" && item.indexOf(presetChars) != 0) {
             return;
