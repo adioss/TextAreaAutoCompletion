@@ -33,9 +33,10 @@ use namespace mx_internal;
  * - manage key/mouse events
  */
 public class AutoCompletion {
-    private static var MAX_ROW_COUNT:int = 10;
-    private static var SELECTION_COLOR:int = 0xA4D3EE;
-    private static var ROLLOVER_COLOR:int = 0xA4D3EE;
+    private static const AUTOCOMPLETION_MAX_ROW_COUNT:int = 10;
+    private static const AUTOCOMPLETION_SELECTION_COLOR:int = 0xA4D3EE;
+    private static const AUTOCOMPLETION_ROLLOVER_COLOR:int = 0xA4D3EE;
+    private static const AUTOCOMPLETION_LIST_WIDTH:int = 160;
 
     private var m_textArea:TextArea;
     private var m_beginPosition:int = -1;
@@ -68,13 +69,14 @@ public class AutoCompletion {
     //region Events
     private function onTextAreaKeyDown(event:KeyboardEvent):void {
         if (event.ctrlKey && event.keyCode == Keyboard.SPACE) {
+            // get cursor position in xml
             m_currentXmlPosition = m_xmlPositionHelper.getCurrentXmlPosition();
             if (m_currentXmlPosition is XmlBeginTagPosition
                     || m_currentXmlPosition is XmlAttributePosition
                     || m_currentXmlPosition is XmlAttributeEditionPosition) {
                 initializeCompletion();
             } else if (m_currentXmlPosition is XmlEndTagPosition) {
-
+                completeEndTag();
             }
         }
     }
@@ -205,10 +207,36 @@ public class AutoCompletion {
             textToAppend += "=\"\"";
             completionOffset = -1;
         }
-        var result:String = textToTransform.substring(0, beginPosition) +
+        var textAreaContent:String = textToTransform.substring(0, beginPosition) +
                 textToAppend + postText + textToTransform.substr(endPosition, textToTransform.length);
         endPosition += textToAppend.length - currentTypedWord.length + completionOffset;
-        m_textArea.callLater(setTextAreaCallBack, new Array(result));
+        m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
+    }
+
+    private function completeEndTag():void {
+        var xmlEndTagPosition:XmlEndTagPosition = XmlEndTagPosition(m_currentXmlPosition);
+        var content:String = m_textArea.text;
+        var currentPosition:int = m_textArea.selectionBeginIndex;
+        var centerPosition:int = xmlEndTagPosition.presetChars != null ?
+                currentPosition - xmlEndTagPosition.presetChars.length : currentPosition;
+        var textToAppend:String = xmlEndTagPosition.associatedTagName;
+        var isClosedTag:Boolean = false;
+        if (currentPosition < content.length) {
+            if (content.charAt(currentPosition) != ">") {
+                isClosedTag = true;
+                textToAppend += (">");
+            }
+        } else {
+            isClosedTag = true;
+            textToAppend += (">");
+        }
+        var deltaToRetrieveEndPart:int = (xmlEndTagPosition.associatedTagName.length
+                - (xmlEndTagPosition.presetChars != null ? xmlEndTagPosition.presetChars.length : 0))
+                + (isClosedTag ? 1 : 0);
+        endPosition = centerPosition + textToAppend.length;
+        var textAreaContent:String = content.substring(0, centerPosition) + (textToAppend)
+                + (content.substring(endPosition - deltaToRetrieveEndPart, content.length));
+        m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
     }
 
     private function retrieveFirstAttributeOfBeginTag(beginTagName:String):String {
@@ -251,9 +279,9 @@ public class AutoCompletion {
     //region Manage AutoCompletionList
     private function initializeAutoCompleteList(wordList:Array, presetChar:String):void {
         var havePreset:Boolean = presetChar != null && presetChar != "";
-        m_autoCompleteList.setStyle("rollOverColor", ROLLOVER_COLOR);
-        m_autoCompleteList.setStyle("m_selectionColor", SELECTION_COLOR);
-        m_autoCompleteList.width = 160;
+        m_autoCompleteList.setStyle("rollOverColor", AUTOCOMPLETION_ROLLOVER_COLOR);
+        m_autoCompleteList.setStyle("m_selectionColor", AUTOCOMPLETION_SELECTION_COLOR);
+        m_autoCompleteList.width = AUTOCOMPLETION_LIST_WIDTH;
         m_autoCompleteList.doubleClickEnabled = true;
         currentTypedWord = havePreset ? presetChar : "";
         m_globalAutoCompleteListContent = wordList;
@@ -261,7 +289,7 @@ public class AutoCompletion {
             wordList = filterWordListWithCurrentTypedWord();
         }
         m_autoCompleteList.dataProvider = wordList;
-        m_autoCompleteList.rowCount = wordList.length > MAX_ROW_COUNT ? MAX_ROW_COUNT : wordList.length;
+        m_autoCompleteList.rowCount = wordList.length > AUTOCOMPLETION_MAX_ROW_COUNT ? AUTOCOMPLETION_MAX_ROW_COUNT : wordList.length;
     }
 
     private function showAutoCompleteCanvas(currentPosition:Point):void {
@@ -305,7 +333,7 @@ public class AutoCompletion {
             return;
         }
         m_autoCompleteList.dataProvider = newFilteredWordList;
-        m_autoCompleteList.rowCount = newFilteredWordList.length > MAX_ROW_COUNT ? MAX_ROW_COUNT : newFilteredWordList.length;
+        m_autoCompleteList.rowCount = newFilteredWordList.length > AUTOCOMPLETION_MAX_ROW_COUNT ? AUTOCOMPLETION_MAX_ROW_COUNT : newFilteredWordList.length;
         m_autoCompleteList.selectedIndex = 0;
     }
 

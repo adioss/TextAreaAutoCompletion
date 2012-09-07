@@ -310,6 +310,7 @@ public class XmlPositionHelperTest {
         Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
         currentPosition = XmlEndTagPosition(currentPositionTested);
         Assert.assertEquals(currentPosition.associatedTagName, "FIRSTNAME");
+        Assert.assertEquals(currentPosition.presetChars, "FI");
 
         m_textArea.text = "<FIRSTNAME></";
         m_textArea.selectionBeginIndex = m_textArea.text.length;
@@ -317,13 +318,14 @@ public class XmlPositionHelperTest {
         Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
         currentPosition = XmlEndTagPosition(currentPositionTested);
         Assert.assertEquals(currentPosition.associatedTagName, "FIRSTNAME");
+        Assert.assertNull(currentPosition.presetChars);
 
         m_textArea.text = "<FIRSTNAME id=\"te st\" other=\"other\" ></";
         m_textArea.selectionBeginIndex = m_textArea.text.length;
         currentPositionTested = m_xmlPositionHelper.getCurrentXmlPosition();
         Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
         currentPosition = XmlEndTagPosition(currentPositionTested);
-        Assert.assertEquals(currentPosition.associatedTagName, "FIRSTNAME");
+        Assert.assertNull(currentPosition.presetChars);
 
         m_textArea.text = "<FIRSTNAME id=\"te st\" other=\"other\" ></OTH";
         m_textArea.selectionBeginIndex = m_textArea.text.length;

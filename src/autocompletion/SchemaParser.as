@@ -114,7 +114,7 @@ public class SchemaParser {
     private function fillCurrentSchemaDescription(parentTagName:String):void {
         var index:String = DEFAULT_SCHEMA_INDEX;
         if (parentTagName.indexOf(":") != 0) {
-
+            index = parentTagName.split(0, parentTagName.indexOf(":"))[0];
         }
         m_currentSchemaDescription = m_schemaDescriptions[index];
     }
