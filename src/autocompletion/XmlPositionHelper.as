@@ -272,6 +272,9 @@ public class XmlPositionHelper {
                     stopCollecting = true;
                     break;
                 case  "=":
+                    if (xmlAttributePosition.alreadyUsedAttributes == null) {
+                        xmlAttributePosition.alreadyUsedAttributes = new ArrayCollection();
+                    }
                     xmlAttributePosition.alreadyUsedAttributes.addItem(currentCollectedChars);
                     currentCollectedChars = "";
                     break;

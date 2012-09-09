@@ -12,7 +12,7 @@ import mx.collections.ArrayCollection;
 /**
  * Bean used to parse multiple XSD
  * - pre parse xsd to accelerate search of
- * - find available tagnames for a parent tagname
+ * - find available tag names for a parent tag name
  * - find available attributes for a tag name
  * - find available values for an attribute
  */
@@ -33,11 +33,11 @@ public class SchemaParser {
 
     private function initializeSchemas(schemas:ArrayCollection):void {
         for each (var schema:XML in schemas) {
-            extractNameSpace(schema);
+            initializeSchema(schema);
         }
     }
 
-    private function extractNameSpace(schema:XML):void {
+    private function initializeSchema(schema:XML):void {
         var namespaceDeclarations:Array = schema.namespaceDeclarations();
         var schemaDescription:SchemaDescription = new SchemaDescription(schema);
         var schemaInformation:SchemaInformation = new SchemaInformation();
@@ -113,7 +113,7 @@ public class SchemaParser {
 
     private function fillCurrentSchemaDescription(parentTagName:String):void {
         var index:String = DEFAULT_SCHEMA_INDEX;
-        if (parentTagName.indexOf(":") != 0) {
+        if (parentTagName.indexOf(":") > 0) {
             index = parentTagName.split(0, parentTagName.indexOf(":"))[0];
         }
         m_currentSchemaDescription = m_schemaDescriptions[index];
@@ -122,7 +122,7 @@ public class SchemaParser {
     public function retrieveAttributeCompletionInformation(position:XmlAttributePosition, filterFunction:Function = null):ArrayCollection /* of String */ {
         fillCurrentSchemaDescription(position.currentTagName);
         var availableChildren:ArrayCollection = findAvailableChildren(position.currentTagName, position.presetChars, PROCESS_ATTRIBUTE, filterFunction);
-        if (position.alreadyUsedAttributes != null) {
+        if (position.alreadyUsedAttributes != null && availableChildren != null) {
             for each (var alreadyUsedAttribute:String in position.alreadyUsedAttributes) {
                 if (availableChildren.contains(alreadyUsedAttribute)) {
                     availableChildren.removeItemAt(availableChildren.getItemIndex(alreadyUsedAttribute));
@@ -168,27 +168,51 @@ public class SchemaParser {
 
     //region Tag processing
     private function findAvailableChildren(parent:String, presetChars:String, type:String, filterFunction:Function = null):ArrayCollection {
-        return processComplexType(findComplexType(parent), presetChars, type, filterFunction);
+        var complexType:XML = findComplexType(parent);
+        var complexTypesProcessed:ArrayCollection = processComplexType(complexType, presetChars, type, filterFunction);
+        return complexTypesProcessed;
     }
 
     private function findComplexType(parent:String):XML {
-        var value:XML = m_currentSchemaDescription.elements[parent];
-        if (value == null) {
-            return null;
+        var element:XML = m_currentSchemaDescription.elements[parent];
+        var standardNameSpace:Namespace;
+        if (element != null) {
+            var complexType:XML;
+            var type:String = element.attribute("type");
+            if (type != null && type != "") { // complex type description in other tag
+                var convertType:String = type.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                complexType = m_currentSchemaDescription.complexTypes[convertType];
+                return complexType;
+            } else if (element.hasComplexContent()) { // complex type description in other tag
+                standardNameSpace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
+                complexType = XML(element.standardNameSpace::complexType);
+                return complexType;
+            }
+        } else {
+            // worst code ever...
+            var descendants:XMLList = m_currentSchemaDescription.schema.descendants().(attribute("name") == parent);
+            if (descendants != null) {
+                var descendant:XML = XML(descendants[0]);
+                standardNameSpace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
+                var temp:XMLList = descendant.standardNameSpace::complexType;
+                if (temp != null && temp.length() > 0) {
+                    return XML(temp);
+                }
+            }
         }
-        var type:String = value.attribute("type");
-        var convertType:String = type.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
-        var complexType:XML = m_currentSchemaDescription.complexTypes[convertType];
-        return complexType;
+        return null;
     }
 
     private function processComplexType(complexType:XML, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
-        var result:ArrayCollection = new ArrayCollection();
-        var complexTypeChildren:XMLList = complexType.children();
-        for each (var complexTypeChild:XML in complexTypeChildren) {
-            processContent(result, complexTypeChild, presetChars, type, filterFunction);
+        if (complexType != null && complexType.length() > 0) {
+            var result:ArrayCollection = new ArrayCollection();
+            var complexTypeChildren:XMLList = complexType.children();
+            for each (var complexTypeChild:XML in complexTypeChildren) {
+                processContent(result, complexTypeChild, presetChars, type, filterFunction);
+            }
+            return result;
         }
-        return result;
+        return null;
     }
 
     private function processContent(result:ArrayCollection, complexType:XML, presetChars:String, type:String, filterFunction:Function):void {
@@ -246,9 +270,13 @@ public class SchemaParser {
         for each (var sequenceChild:XML in sequenceChildren) {
             var sequenceName:String = sequenceChild.localName();
             if ("element" == sequenceName && type == PROCESS_TAG) {
-                var element:String = sequenceChild.attribute("ref");
-                var item:String = element.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
-                appendItem(result, item, presetChars);
+                if (sequenceChild.hasOwnProperty("@ref")) {
+                    var element:String = sequenceChild.attribute("ref");
+                    var item:String = element.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                    appendItem(result, item, presetChars);
+                } else if (sequenceChild.hasOwnProperty("@name")) {
+                    appendItem(result, String(sequenceChild.attribute("name")), presetChars);
+                }
             } else if ("choice" == sequenceName) {
                 append(result, processChoice(sequenceChild, presetChars, type));
             }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()" height="100%" width="100%">
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()" height="100%" width="100%"
+          borderStyle="solid">
     <mx:Script>
         <![CDATA[
         import autocompletion.*;
@@ -8,15 +9,81 @@
 
         [Embed(source="/assets/camel-spring-2.9.1.xml")]
         private var CAMEL_SPRING_XSD:Class;
+        private static const FILE_TYPES:Array = [new FileFilter("Schema File", "*.xsd;*.xml")];
+
+        private var m_fileReference:FileReference;
+        [Bindable]
+        private var m_schemas:ArrayCollection = new ArrayCollection();
+
+        private var m_autoCompletion:AutoCompletion;
 
         private function init():void {
-            var autoCompletion:AutoCompletion = new AutoCompletion(textArea, new ArrayCollection([CAMEL_SPRING_XSD.data as XML]), true);
-            textArea.text = "";
+//            var autoCompletion:AutoCompletion = new AutoCompletion(textArea,
+//                    new ArrayCollection([CAMEL_SPRING_XSD.data as XML]),
+//                    true);
+            textArea.text = "<shiporder><";
+        }
+
+        private function onLoadSchemaButtonClick(event:MouseEvent):void {
+            m_fileReference = new FileReference();
+            m_fileReference.addEventListener(Event.SELECT, onFileSelect);
+            m_fileReference.browse(FILE_TYPES);
+        }
+
+        private function onFileSelect(event:Event):void {
+            m_fileReference.addEventListener(Event.COMPLETE, onLoadComplete);
+            m_fileReference.load();
+        }
+
+        private function onLoadComplete(event:Event):void {
+            var data:ByteArray = m_fileReference.data;
+            var stringData:String = data.readUTFBytes(data.bytesAvailable);
+            var file:XML = XML(stringData);
+            m_schemas.addItem({name:m_fileReference.name, file:file});
+            m_fileReference = null;
+            refreshSchemas();
+        }
+
+        public function removeSchema(event:MouseEvent):void {
+            m_schemas.removeItemAt(loadedSchemaGrid.selectedIndex);
+            m_schemas.refresh();
+            refreshSchemas();
+        }
+
+        private function refreshSchemas():void {
+            var schemas:ArrayCollection = new ArrayCollection();
+            for each (var object:Object in m_schemas) {
+                schemas.addItem(object.file);
+            }
+            m_autoCompletion = new AutoCompletion(textArea, schemas, true);
         }
         ]]>
     </mx:Script>
-    <mx:HBox horizontalAlign="left" width="100%" height="100%">
-        <mx:TextArea id="textArea" height="100%" width="75%" horizontalCenter="true"/>
-    </mx:HBox>
+    <mx:VBox width="100%" height="100%">
+        <mx:HBox horizontalAlign="left" width="100%" height="100%">
+            <mx:TextArea id="textArea" height="100%" width="75%" horizontalCenter="true"/>
+            <mx:VBox width="25%">
+                <mx:DataGrid id="loadedSchemaGrid" width="100%" dataProvider="{m_schemas}">
+                    <mx:columns>
+                        <mx:DataGridColumn headerText="Schema" dataField="name">
+                            <mx:itemRenderer>
+                                <mx:Component>
+                                    <mx:Text text="{data.name}"/>
+                                </mx:Component>
+                            </mx:itemRenderer>
+                        </mx:DataGridColumn>
+                        <mx:DataGridColumn headerText="Remove" width="60">
+                            <mx:itemRenderer>
+                                <mx:Component>
+                                    <mx:LinkButton label="X" click="outerDocument.removeSchema(event)"/>
+                                </mx:Component>
+                            </mx:itemRenderer>
+                        </mx:DataGridColumn>
+                    </mx:columns>
+                </mx:DataGrid>
+                <mx:Button id="loadSchemaButton" label="Upload schema" click="onLoadSchemaButtonClick(event)"/>
+            </mx:VBox>
+        </mx:HBox>
+    </mx:VBox>
 
 </mx:Panel>

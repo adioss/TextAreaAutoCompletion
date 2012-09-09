@@ -46,10 +46,8 @@ public class AutoCompletion {
     private var m_xmlPositionHelper:XmlPositionHelper;
     private var m_schemaParser:SchemaParser;
     private var m_currentXmlPosition:XmlPosition;
-    private var m_generateSchemaHeader:Boolean;
+    private var m_isGenerateSchemaHeader:Boolean;
 
-    // textarea tools
-    private var m_textAreaHelper:TextAreaHelper;
     // autocomplete selection with combobox
     private var m_autoCompleteList:List = new List();
     private var m_globalAutoCompleteListContent:Array = new Array();
@@ -58,12 +56,13 @@ public class AutoCompletion {
     private var m_currentTypedWord:String;
 
     public function AutoCompletion(textArea:TextArea, schemas:ArrayCollection, generateSchemaHeader:Boolean) {
-        m_textArea = textArea;
-        m_generateSchemaHeader = generateSchemaHeader;
-        m_xmlPositionHelper = new XmlPositionHelper(m_textArea);
-        m_schemaParser = new SchemaParser(schemas);
-        m_textAreaHelper = new TextAreaHelper();
-        m_textArea.addEventListener(KeyboardEvent.KEY_DOWN, onTextAreaKeyDown);
+        if (schemas != null && schemas.length > 0) {
+            m_textArea = textArea;
+            m_isGenerateSchemaHeader = generateSchemaHeader;
+            m_xmlPositionHelper = new XmlPositionHelper(m_textArea);
+            m_schemaParser = new SchemaParser(schemas);
+            m_textArea.addEventListener(KeyboardEvent.KEY_DOWN, onTextAreaKeyDown);
+        }
     }
 
     //region Events
@@ -119,13 +118,13 @@ public class AutoCompletion {
             tagCompletions = m_schemaParser.
                     retrieveAttributeCompletionInformation(XmlAttributePosition(m_currentXmlPosition));
         }
-        if (tagCompletions != null) {
+        if (tagCompletions != null && tagCompletions.length > 0) {
             initializeAutoCompleteList(tagCompletions.source, presetChars);
             var currentPosition:Point = TextAreaHelper.getTextAreaCurrentGlobalCursorPosition(m_textArea,
                     havePreset ? presetChars.length : 0);
             var presetOffset:int = havePreset ? presetChars.length : 0;
-            beginPosition = m_textArea.selectionBeginIndex - presetOffset;
-            endPosition = m_textArea.selectionBeginIndex;
+            m_beginPosition = m_textArea.selectionBeginIndex - presetOffset;
+            m_endPosition = m_textArea.selectionBeginIndex;
             showAutoCompleteCanvas(currentPosition);
             manageAutoCompleteCanvas();
         }
@@ -145,33 +144,33 @@ public class AutoCompletion {
         } else if (keyCode == Keyboard.LEFT || keyCode == Keyboard.RIGHT) {
             refreshAfterHorizontalNavigation(keyCode);
         } else if (charCode == Keyboard.BACKSPACE) {
-            if (currentTypedWord.length == 0) {
+            if (m_currentTypedWord.length == 0) {
                 removeAutoCompleteCanvas();
             } else {
-                currentTypedWord = currentTypedWord.substring(0, currentTypedWord.length - 1);
-                refreshListAndPosition(endPosition > 0 ? endPosition - 1 : endPosition);
+                m_currentTypedWord = m_currentTypedWord.substring(0, m_currentTypedWord.length - 1);
+                refreshListAndPosition(m_endPosition > 0 ? m_endPosition - 1 : m_endPosition);
             }
         } else if (isValidKeyCode(keyCode)) {
             var nextCharacter:String = String.fromCharCode(charCode);
-            endPosition += 1;
-            currentTypedWord += nextCharacter;
+            m_endPosition += 1;
+            m_currentTypedWord += nextCharacter;
             appendCharToTextArea(nextCharacter); // update text area
             updateAutoCompleteList(); // update list
         }
     }
 
-    private function isValidKeyCode(keyCode:uint):Boolean {
+    private static function isValidKeyCode(keyCode:uint):Boolean {
         return keyCode != Keyboard.CONTROL && keyCode != Keyboard.SHIFT;
     }
 
     private function refreshAfterHorizontalNavigation(keyCodeHorizontalNavigation:uint):void {
-        if (currentTypedWord.length > 0) {
+        if (m_currentTypedWord.length > 0) {
             if (keyCodeHorizontalNavigation == Keyboard.LEFT) {
-                currentTypedWord = currentTypedWord.substr(0, currentTypedWord.length - 1);
+                m_currentTypedWord = m_currentTypedWord.substr(0, m_currentTypedWord.length - 1);
             } else {
-                currentTypedWord += m_textArea.text.substr(m_endPosition, 1);
+                m_currentTypedWord += m_textArea.text.substr(m_endPosition, 1);
             }
-            refreshListAndPosition(endPosition > 0 ? endPosition - 1 : endPosition);
+            refreshListAndPosition(m_endPosition > 0 ? m_endPosition - 1 : m_endPosition);
         } else {
             removeAutoCompleteCanvas();
         }
@@ -207,9 +206,9 @@ public class AutoCompletion {
             textToAppend += "=\"\"";
             completionOffset = -1;
         }
-        var textAreaContent:String = textToTransform.substring(0, beginPosition) +
-                textToAppend + postText + textToTransform.substr(endPosition, textToTransform.length);
-        endPosition += textToAppend.length - currentTypedWord.length + completionOffset;
+        var textAreaContent:String = textToTransform.substring(0, m_beginPosition) +
+                textToAppend + postText + textToTransform.substr(m_endPosition, textToTransform.length);
+        m_endPosition += textToAppend.length - m_currentTypedWord.length + completionOffset;
         m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
     }
 
@@ -233,9 +232,9 @@ public class AutoCompletion {
         var deltaToRetrieveEndPart:int = (xmlEndTagPosition.associatedTagName.length
                 - (xmlEndTagPosition.presetChars != null ? xmlEndTagPosition.presetChars.length : 0))
                 + (isClosedTag ? 1 : 0);
-        endPosition = centerPosition + textToAppend.length;
+        m_endPosition = centerPosition + textToAppend.length;
         var textAreaContent:String = content.substring(0, centerPosition) + (textToAppend)
-                + (content.substring(endPosition - deltaToRetrieveEndPart, content.length));
+                + (content.substring(m_endPosition - deltaToRetrieveEndPart, content.length));
         m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
     }
 
@@ -259,8 +258,8 @@ public class AutoCompletion {
 
     private function appendCharToTextArea(charToAppend:String):void {
         var textToTransform:String = m_textArea.text;
-        var result:String = textToTransform.substring(0, endPosition - 1) +
-                charToAppend + textToTransform.substr(endPosition - 1, textToTransform.length);
+        var result:String = textToTransform.substring(0, m_endPosition - 1) +
+                charToAppend + textToTransform.substr(m_endPosition - 1, textToTransform.length);
         m_textArea.callLater(setTextAreaCallBack, new Array(result));
     }
 
@@ -270,7 +269,7 @@ public class AutoCompletion {
     }
 
     private function setFocusToEndPosition():void {
-        m_textArea.setSelection(endPosition, endPosition);
+        m_textArea.setSelection(m_endPosition, m_endPosition);
         m_textArea.setFocus();
     }
 
@@ -283,7 +282,7 @@ public class AutoCompletion {
         m_autoCompleteList.setStyle("m_selectionColor", AUTOCOMPLETION_SELECTION_COLOR);
         m_autoCompleteList.width = AUTOCOMPLETION_LIST_WIDTH;
         m_autoCompleteList.doubleClickEnabled = true;
-        currentTypedWord = havePreset ? presetChar : "";
+        m_currentTypedWord = havePreset ? presetChar : "";
         m_globalAutoCompleteListContent = wordList;
         if (havePreset) {
             wordList = filterWordListWithCurrentTypedWord();
@@ -320,9 +319,9 @@ public class AutoCompletion {
         m_textArea.addEventListener(KeyboardEvent.KEY_DOWN, onTextAreaKeyDown);
         m_autoCompleteCanvas = null;
         m_currentXmlPosition = null;
-        beginPosition = -1;
-        endPosition = -1;
-        currentTypedWord = "";
+        m_beginPosition = -1;
+        m_endPosition = -1;
+        m_currentTypedWord = "";
     }
 
     private function updateAutoCompleteList():void {
@@ -340,7 +339,7 @@ public class AutoCompletion {
     private function filterWordListWithCurrentTypedWord():Array {
         var newFilteredWordList:Array = new Array();
         var lowerCaseItem:String;
-        var typedWord:String = currentTypedWord.toLowerCase();
+        var typedWord:String = m_currentTypedWord.toLowerCase();
         for each (var item:String in m_globalAutoCompleteListContent) {
             lowerCaseItem = item.toLocaleLowerCase();
             if (lowerCaseItem.substr(0, typedWord.length) == typedWord) {
@@ -358,35 +357,8 @@ public class AutoCompletion {
 
     private function refreshListAndPosition(lastEndPosition:int):void {
         updateAutoCompleteList();
-        endPosition = lastEndPosition;
+        m_endPosition = lastEndPosition;
         setFocusToEndPosition();
-    }
-
-    //endregion
-
-    //region Getters/Setters
-    private function set beginPosition(value:int):void {
-        m_beginPosition = value;
-    }
-
-    private function get beginPosition():int {
-        return m_beginPosition;
-    }
-
-    private function set endPosition(value:int):void {
-        m_endPosition = value;
-    }
-
-    private function get endPosition():int {
-        return m_endPosition
-    }
-
-    private function get currentTypedWord():String {
-        return m_currentTypedWord;
-    }
-
-    private function set currentTypedWord(value:String):void {
-        m_currentTypedWord = value;
     }
 
     //endregion
