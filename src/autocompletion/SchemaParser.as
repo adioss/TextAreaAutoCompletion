@@ -105,8 +105,10 @@ public class SchemaParser {
 
     public function retrieveTagCompletionInformation(position:XmlBeginTagPosition):ArrayCollection {
         if (position.parentTagName != null) {
-            fillCurrentSchemaDescription(position.parentTagName);
-            return findAvailableChildren(position.parentTagName, position.presetChars, PROCESS_TAG);
+            fillCurrentSchemaDescription(position.presetChars);
+            if (m_currentSchemaDescription != null) {
+                return findAvailableChildren(position.parentTagName, position.presetChars, PROCESS_TAG);
+            }
         }
         return null;
     }
@@ -121,46 +123,51 @@ public class SchemaParser {
 
     public function retrieveAttributeCompletionInformation(position:XmlAttributePosition, filterFunction:Function = null):ArrayCollection /* of String */ {
         fillCurrentSchemaDescription(position.currentTagName);
-        var availableChildren:ArrayCollection = findAvailableChildren(position.currentTagName, position.presetChars, PROCESS_ATTRIBUTE, filterFunction);
-        if (position.alreadyUsedAttributes != null && availableChildren != null) {
-            for each (var alreadyUsedAttribute:String in position.alreadyUsedAttributes) {
-                if (availableChildren.contains(alreadyUsedAttribute)) {
-                    availableChildren.removeItemAt(availableChildren.getItemIndex(alreadyUsedAttribute));
+        if (m_currentSchemaDescription != null) {
+            var availableChildren:ArrayCollection = findAvailableChildren(position.currentTagName, position.presetChars, PROCESS_ATTRIBUTE, filterFunction);
+            if (position.alreadyUsedAttributes != null && availableChildren != null) {
+                for each (var alreadyUsedAttribute:String in position.alreadyUsedAttributes) {
+                    if (availableChildren.contains(alreadyUsedAttribute)) {
+                        availableChildren.removeItemAt(availableChildren.getItemIndex(alreadyUsedAttribute));
+                    }
                 }
             }
+            return availableChildren;
         }
-        return availableChildren;
+        return null;
     }
 
     public function retrieveAttributeEditionCompletionInformation(position:XmlAttributeEditionPosition):ArrayCollection /* of String */ {
         fillCurrentSchemaDescription(position.currentTagName);
-        var result:ArrayCollection = null;
-        var simpleType:XML = m_currentSchemaDescription.simpleTypes[position.currentAttributeName];
-        if (simpleType != null) {
-            var restriction:XMLList = simpleType.children();
-            if (restriction != null && restriction.children() != null) {
-                result = new ArrayCollection();
-                for each (var enumeration:XML in restriction.children()) {
-                    var item:String = enumeration.attribute("value");
-                    result.addItem(item);
+        if (m_currentSchemaDescription != null) {
+            var result:ArrayCollection = null;
+            var simpleType:XML = m_currentSchemaDescription.simpleTypes[position.currentAttributeName];
+            if (simpleType != null) {
+                var restriction:XMLList = simpleType.children();
+                if (restriction != null && restriction.children() != null) {
+                    result = new ArrayCollection();
+                    for each (var enumeration:XML in restriction.children()) {
+                        var item:String = enumeration.attribute("value");
+                        result.addItem(item);
+                    }
                 }
-            }
-        } else {
-            // not match in simpleTypes, find it to see if it's boolean type attribute
-            var schema:XML = m_currentSchemaDescription.schema;
-            var standardNameSpace:Namespace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
-            var complexTypeName:String = String(schema.standardNameSpace::element
-                    .(attribute("name") == position.currentTagName)
-                    .attribute("type").toXMLString())
-                    .replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
-            // TODO: match ALL...not only here...
-            var simpleTypeName:String = String(schema.standardNameSpace::complexType
-                    .(attribute("name") == complexTypeName)..*::attribute
-                    .(attribute("name") == position.currentAttributeName)
-                    .attribute("type").toXMLString())
-                    .replace(m_currentSchemaDescription.schemaInformation.standardPrefix + ":", "");
-            if (simpleTypeName == "boolean") {
-                result = new ArrayCollection(["true", "false"]);
+            } else {
+                // not match in simpleTypes, find it to see if it's boolean type attribute
+                var schema:XML = m_currentSchemaDescription.schema;
+                var standardNameSpace:Namespace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
+                var complexTypeName:String = String(schema.standardNameSpace::element
+                        .(attribute("name") == position.currentTagName)
+                        .attribute("type").toXMLString())
+                        .replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                // TODO: match ALL...not only here...
+                var simpleTypeName:String = String(schema.standardNameSpace::complexType
+                        .(attribute("name") == complexTypeName)..*::attribute
+                        .(attribute("name") == position.currentAttributeName)
+                        .attribute("type").toXMLString())
+                        .replace(m_currentSchemaDescription.schemaInformation.standardPrefix + ":", "");
+                if (simpleTypeName == "boolean") {
+                    result = new ArrayCollection(["true", "false"]);
+                }
             }
         }
         return result;
@@ -174,29 +181,31 @@ public class SchemaParser {
     }
 
     private function findComplexType(parent:String):XML {
-        var element:XML = m_currentSchemaDescription.elements[parent];
-        var standardNameSpace:Namespace;
-        if (element != null) {
-            var complexType:XML;
-            var type:String = element.attribute("type");
-            if (type != null && type != "") { // complex type description in other tag
-                var convertType:String = type.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
-                complexType = m_currentSchemaDescription.complexTypes[convertType];
-                return complexType;
-            } else if (element.hasComplexContent()) { // complex type description in other tag
-                standardNameSpace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
-                complexType = XML(element.standardNameSpace::complexType);
-                return complexType;
-            }
-        } else {
-            // worst code ever...
-            var descendants:XMLList = m_currentSchemaDescription.schema.descendants().(attribute("name") == parent);
-            if (descendants != null) {
-                var descendant:XML = XML(descendants[0]);
-                standardNameSpace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
-                var temp:XMLList = descendant.standardNameSpace::complexType;
-                if (temp != null && temp.length() > 0) {
-                    return XML(temp);
+        if (m_currentSchemaDescription != null) {
+            var element:XML = m_currentSchemaDescription.elements[parent];
+            var standardNameSpace:Namespace;
+            if (element != null) {
+                var complexType:XML;
+                var type:String = element.attribute("type");
+                if (type != null && type != "") { // complex type description in other tag
+                    var convertType:String = type.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                    complexType = m_currentSchemaDescription.complexTypes[convertType];
+                    return complexType;
+                } else if (element.hasComplexContent()) { // complex type description in other tag
+                    standardNameSpace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
+                    complexType = XML(element.standardNameSpace::complexType);
+                    return complexType;
+                }
+            } else {
+                // worst code ever...
+                var descendants:XMLList = m_currentSchemaDescription.schema.descendants().(attribute("name") == parent);
+                if (descendants != null) {
+                    var descendant:XML = XML(descendants[0]);
+                    standardNameSpace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
+                    var temp:XMLList = descendant.standardNameSpace::complexType;
+                    if (temp != null && temp.length() > 0) {
+                        return XML(temp);
+                    }
                 }
             }
         }
@@ -254,14 +263,16 @@ public class SchemaParser {
     }
 
     private function processExtension(baseType:String, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
-        var result:ArrayCollection = new ArrayCollection();
-        var complexType:XML = m_currentSchemaDescription.abstractComplexTypes[baseType];
-        if (complexType == null) {
-            complexType = m_currentSchemaDescription.complexTypes[baseType];
+        if (m_currentSchemaDescription != null) {
+            var result:ArrayCollection = new ArrayCollection();
+            var complexType:XML = m_currentSchemaDescription.abstractComplexTypes[baseType];
+            if (complexType == null) {
+                complexType = m_currentSchemaDescription.complexTypes[baseType];
+            }
+            append(result, processComplexType(complexType, presetChars, type, filterFunction));
+            return result;
         }
-        append(result, processComplexType(complexType, presetChars, type, filterFunction));
-        return result;
-
+        return null;
     }
 
     private function processSequence(sequence:XML, presetChars:String, type:String):ArrayCollection {
