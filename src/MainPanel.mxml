@@ -79,7 +79,7 @@
                     </mx:columns>
                 </mx:DataGrid>
                 <mx:Button id="loadSchemaButton" label="Upload schema" click="onLoadSchemaButtonClick(event)"/>
-                <mx:TextInput id="rootTagName" text=""/>
+                <mx:TextInput id="rootTagName" text="routes"/>
             </mx:VBox>
         </mx:HBox>
     </mx:VBox>

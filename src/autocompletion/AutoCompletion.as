@@ -75,6 +75,18 @@ public class AutoCompletion {
             } else if (m_currentXmlPosition is XmlEndTagPosition) {
                 completeEndTag();
             }
+        } else if (event.charCode == 47 || event.charCode == 62) { // for "/" and ">"
+            m_currentXmlPosition = m_xmlPositionHelper.getCurrentXmlPosition();
+            if (m_currentXmlPosition is XmlAttributePosition) {
+                clauseCurrentTag(event.charCode, XmlAttributePosition(m_currentXmlPosition).currentTagName);
+            } else if (m_currentXmlPosition is XmlBeginTagPosition) {
+                var position:XmlBeginTagPosition = XmlBeginTagPosition(m_currentXmlPosition);
+                var tags:ArrayCollection =
+                        m_schemaParser.retrieveTagCompletionInformation(position);
+                if (tags != null && tags.length == 1 && tags.getItemAt(0) == position.presetChars) {
+                    clauseCurrentTag(event.charCode, position.presetChars);
+                }
+            }
         }
     }
 
@@ -188,11 +200,9 @@ public class AutoCompletion {
 
     private function appendTextToTextArea(textToAppend:String):void {
         var textToTransform:String = m_textArea.text;
-        var postText:String = "";
         var completionOffset:int = 0;
         if (m_currentXmlPosition is XmlBeginTagPosition) {
             var firstAttribute:String = retrieveFirstAttributeOfBeginTag(textToAppend);
-            postText = "></" + textToAppend.substring(0, textToAppend.length) + ">";
             if (firstAttribute != null && firstAttribute.length > 0) {
                 textToAppend += " ";
                 textToAppend += firstAttribute + "=\"\"";
@@ -205,8 +215,24 @@ public class AutoCompletion {
             completionOffset = -1;
         }
         var textAreaContent:String = textToTransform.substring(0, m_beginPosition) +
-                textToAppend + postText + textToTransform.substr(m_endPosition, textToTransform.length);
+                textToAppend + textToTransform.substr(m_endPosition, textToTransform.length);
         m_endPosition += textToAppend.length - m_currentTypedWord.length + completionOffset;
+        m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
+    }
+
+    private function clauseCurrentTag(charCode:uint, tagCompletion:String):void {
+        var content:String = m_textArea.text;
+        var currentPosition:int = m_textArea.selectionBeginIndex;
+        var textToAppend:String = "";
+        if (charCode == 62) {
+            m_endPosition = currentPosition + 1;
+            textToAppend = ">" + "</" + tagCompletion + ">";
+        } else if (charCode == 47) {
+            textToAppend = "/>";
+            m_endPosition = currentPosition + textToAppend.length;
+        }
+        var textAreaContent:String = content.substring(0, currentPosition) + (textToAppend)
+                + (content.substring(currentPosition, content.length));
         m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
     }
 
