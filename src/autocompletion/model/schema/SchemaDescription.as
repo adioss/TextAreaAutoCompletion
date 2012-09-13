@@ -14,6 +14,7 @@ public class SchemaDescription {
     public var elements:Dictionary = new Dictionary();
     public var complexTypes:Dictionary = new Dictionary();
     public var abstractComplexTypes:Dictionary = new Dictionary();
+    public var prefix:String;
 
     public function SchemaDescription(schema:XML) {
         this.schema = schema;

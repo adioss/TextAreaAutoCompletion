@@ -46,7 +46,6 @@ public class AutoCompletion {
     private var m_xmlPositionHelper:XmlPositionHelper;
     private var m_schemaParser:SchemaParser;
     private var m_currentXmlPosition:XmlPosition;
-    private var m_isGenerateSchemaHeader:Boolean;
 
     // autocomplete selection with combobox
     private var m_autoCompleteList:List = new List();
@@ -55,10 +54,9 @@ public class AutoCompletion {
     private var m_autoCompleteCanvas:Canvas = new Canvas();
     private var m_currentTypedWord:String;
 
-    public function AutoCompletion(textArea:TextArea, schemas:ArrayCollection, generateSchemaHeader:Boolean) {
+    public function AutoCompletion(textArea:TextArea, schemas:ArrayCollection) {
         if (schemas != null && schemas.length > 0) {
             m_textArea = textArea;
-            m_isGenerateSchemaHeader = generateSchemaHeader;
             m_xmlPositionHelper = new XmlPositionHelper(m_textArea);
             m_schemaParser = new SchemaParser(schemas);
             m_textArea.addEventListener(KeyboardEvent.KEY_DOWN, onTextAreaKeyDown);
@@ -359,6 +357,13 @@ public class AutoCompletion {
         updateAutoCompleteList();
         m_endPosition = lastEndPosition;
         setFocusToEndPosition();
+    }
+
+    //endregion
+
+    //region
+    public function generateHeaderForSchemaDescriptions(rootTagName:String):String {
+        return m_schemaParser.generateHeaderForSchemaDescriptions(rootTagName);
     }
 
     //endregion

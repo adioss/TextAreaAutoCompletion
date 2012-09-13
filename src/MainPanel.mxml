@@ -18,10 +18,6 @@
         private var m_autoCompletion:AutoCompletion;
 
         private function init():void {
-//            var autoCompletion:AutoCompletion = new AutoCompletion(textArea,
-//                    new ArrayCollection([CAMEL_SPRING_XSD.data as XML]),
-//                    true);
-            textArea.text = "<shiporder><";
         }
 
         private function onLoadSchemaButtonClick(event:MouseEvent):void {
@@ -55,7 +51,8 @@
             for each (var object:Object in m_schemas) {
                 schemas.addItem(object.file);
             }
-            m_autoCompletion = new AutoCompletion(textArea, schemas, true);
+            m_autoCompletion = new AutoCompletion(textArea, schemas);
+            textArea.text = m_autoCompletion.generateHeaderForSchemaDescriptions(rootTagName.text);
         }
         ]]>
     </mx:Script>
@@ -82,6 +79,7 @@
                     </mx:columns>
                 </mx:DataGrid>
                 <mx:Button id="loadSchemaButton" label="Upload schema" click="onLoadSchemaButtonClick(event)"/>
+                <mx:TextInput id="rootTagName" text=""/>
             </mx:VBox>
         </mx:HBox>
     </mx:VBox>

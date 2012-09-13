@@ -17,9 +17,10 @@ import mx.collections.ArrayCollection;
  * - find available values for an attribute
  */
 public class SchemaParser {
-    public static const PROCESS_TAG:String = "processTag";
-    public static const PROCESS_ATTRIBUTE:String = "processAttribute";
+    private static const PROCESS_TAG:String = "processTag";
+    private static const PROCESS_ATTRIBUTE:String = "processAttribute";
     private static const DEFAULT_SCHEMA_INDEX:String = "default";
+    private static const DEFAULT_SCHEMA_PREFIX:String = "xs";
 
     private var m_schemaDescriptions:Dictionary = new Dictionary();// of SchemaDescription
     private var m_currentSchemaDescription:SchemaDescription;
@@ -44,21 +45,26 @@ public class SchemaParser {
         var prefix:String;
         for each (var namespaceDeclaration:Namespace in namespaceDeclarations) {
             if (namespaceDeclaration.uri == SchemaInformation.STANDARD_URI) {
-                schemaInformation.standardPrefix = namespaceDeclaration.prefix.toString();
                 schemaInformation.standardNameSpace = namespaceDeclaration;
             } else {
-                schemaInformation.schemaPrefix = namespaceDeclaration.prefix.toString();
-                schemaInformation.schemaUri = namespaceDeclaration.uri.toString();
                 schemaInformation.schemaNameSpace = namespaceDeclaration;
             }
         }
-        schemaDescription.schemaInformation = schemaInformation;
-        schemaDescription.simpleTypes = getSchemaSimpleTypes(schema, schemaInformation.standardNameSpace);
-        schemaDescription.elements = getSchemaElements(schema, schemaInformation.standardNameSpace);
-        schemaDescription.complexTypes = getSchemaComplexTypes(schema, schemaInformation.standardNameSpace);
-        schemaDescription.abstractComplexTypes = getAbstractComplexTypes(schema, schemaInformation.standardNameSpace);
-        prefix = m_schemaDescriptions.length > 0 ? schemaInformation.schemaPrefix : DEFAULT_SCHEMA_INDEX;
-        m_schemaDescriptions[prefix] = schemaDescription;
+        if (schema.hasOwnProperty("@targetNamespace")) {
+            schemaInformation.targetNamespace = schema.attribute("targetNamespace").toXMLString();
+            schemaDescription.schemaInformation = schemaInformation;
+            schemaDescription.simpleTypes = getSchemaSimpleTypes(schema, schemaInformation.standardNameSpace);
+            schemaDescription.elements = getSchemaElements(schema, schemaInformation.standardNameSpace);
+            schemaDescription.complexTypes = getSchemaComplexTypes(schema, schemaInformation.standardNameSpace);
+            schemaDescription.abstractComplexTypes = getAbstractComplexTypes(schema, schemaInformation.standardNameSpace);
+            // by default, take schema prefix, otherwise xs1, xs2...
+            var schemaIndex:String = DEFAULT_SCHEMA_PREFIX + SchemaParser.countDictionaryKeys(m_schemaDescriptions);
+            prefix = countDictionaryKeys(m_schemaDescriptions) > 0 ? schemaIndex : DEFAULT_SCHEMA_INDEX;
+            schemaDescription.prefix = prefix;
+            m_schemaDescriptions[prefix] = schemaDescription;
+        } else {
+            trace("No targetNamespace: ignore it");
+        }
     }
 
     private static function getSchemaSimpleTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
@@ -113,10 +119,10 @@ public class SchemaParser {
         return null;
     }
 
-    private function fillCurrentSchemaDescription(parentTagName:String):void {
+    private function fillCurrentSchemaDescription(tagName:String):void {
         var index:String = DEFAULT_SCHEMA_INDEX;
-        if (parentTagName.indexOf(":") > 0) {
-            index = parentTagName.split(0, parentTagName.indexOf(":"))[0];
+        if (tagName != null && tagName.length > 0 && tagName.indexOf(":") > 0) {
+            index = tagName.split(0, tagName.indexOf(":"))[0];
         }
         m_currentSchemaDescription = m_schemaDescriptions[index];
     }
@@ -158,13 +164,13 @@ public class SchemaParser {
                 var complexTypeName:String = String(schema.standardNameSpace::element
                         .(attribute("name") == position.currentTagName)
                         .attribute("type").toXMLString())
-                        .replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                        .replace(m_currentSchemaDescription.schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
                 // TODO: match ALL...not only here...
                 var simpleTypeName:String = String(schema.standardNameSpace::complexType
                         .(attribute("name") == complexTypeName)..*::attribute
                         .(attribute("name") == position.currentAttributeName)
                         .attribute("type").toXMLString())
-                        .replace(m_currentSchemaDescription.schemaInformation.standardPrefix + ":", "");
+                        .replace(m_currentSchemaDescription.schemaInformation.standardNameSpace.prefix.toString() + ":", "");
                 if (simpleTypeName == "boolean") {
                     result = new ArrayCollection(["true", "false"]);
                 }
@@ -188,7 +194,8 @@ public class SchemaParser {
                 var complexType:XML;
                 var type:String = element.attribute("type");
                 if (type != null && type != "") { // complex type description in other tag
-                    var convertType:String = type.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                    var convertType:String = type.replace(m_currentSchemaDescription
+                            .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
                     complexType = m_currentSchemaDescription.complexTypes[convertType];
                     return complexType;
                 } else if (element.hasComplexContent()) { // complex type description in other tag
@@ -232,9 +239,6 @@ public class SchemaParser {
             append(result, processSequence(complexType, presetChars, type));
         } else if (complexTypeLocalName == "attribute" && type == PROCESS_ATTRIBUTE) {
             appendAttribute(complexType, result, presetChars, filterFunction);
-        } else {
-            // TODO in attribute for example
-            // Alert.show("processComplexType?? : " + complexTypeLocalName);
         }
     }
 
@@ -245,7 +249,8 @@ public class SchemaParser {
             var complexContentName:String = complexContent.localName();
             if ("extension" == complexContentName) {
                 var base:String = complexContent.attribute("base");
-                var baseType:String = base.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                var baseType:String = base.replace(m_currentSchemaDescription
+                        .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
                 append(result, processExtension(baseType, presetChars, type, filterFunction));
             } else if ("sequence" == complexContentName) {
                 append(result, processSequence(complexContent, presetChars, type));
@@ -283,7 +288,8 @@ public class SchemaParser {
             if ("element" == sequenceName && type == PROCESS_TAG) {
                 if (sequenceChild.hasOwnProperty("@ref")) {
                     var element:String = sequenceChild.attribute("ref");
-                    var item:String = element.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                    var item:String = element.replace(m_currentSchemaDescription
+                            .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
                     appendItem(result, item, presetChars);
                 } else if (sequenceChild.hasOwnProperty("@name")) {
                     appendItem(result, String(sequenceChild.attribute("name")), presetChars);
@@ -303,7 +309,8 @@ public class SchemaParser {
             var choiceName:String = choiceChild.localName();
             if ("element" == choiceName && type == PROCESS_TAG) {
                 var ref:String = choiceChild.attribute("ref");
-                var item:String = ref.replace(m_currentSchemaDescription.schemaInformation.schemaPrefix + ":", "");
+                var item:String = ref.replace(m_currentSchemaDescription
+                        .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
                 appendItem(result, item, presetChars);
             }
         }
@@ -340,6 +347,42 @@ public class SchemaParser {
 
     private static function parseBooleanAttribute(complexType:XML, toParse:String):Boolean {
         return (complexType.@[toParse] == "true");
+    }
+
+    /**
+     * No length property on dictinary...
+     * @param dictionary
+     * @return
+     */
+    public static function countDictionaryKeys(dictionary:Dictionary):int {
+        var n:int = 0;
+        for (var key:* in dictionary) {
+            n++;
+        }
+        return n;
+    }
+
+    /**
+     * Use to generate first tag with
+     * @param rootTagName
+     * @return
+     */
+    public function generateHeaderForSchemaDescriptions(rootTagName:String):String {
+        if (rootTagName != null && rootTagName.length > 0) {
+            var result:String = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<" + rootTagName;
+            for each (var schemaDescription:SchemaDescription in m_schemaDescriptions) {
+                result += " xmlns";
+                if (schemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
+                    result += ":" + schemaDescription.prefix;
+                }
+                result += "=\"" + schemaDescription.schemaInformation.targetNamespace + "\"";
+            }
+            result += ">\n" + "</" + rootTagName + ">";
+            return result;
+        }
+
+        return null;
+
     }
 
     //endregion
