@@ -51,13 +51,6 @@ public class XmlPositionHelper {
         var isQuoteFound:Boolean = false;
         var alreadyUsedAttributes:ArrayCollection = new ArrayCollection();
 
-        if (contentToBegin.length > 2) {
-            if (contentToBegin.charAt(contentToBegin.length - 1) == "\""
-                    && contentToBegin.charAt(contentToBegin.length - 2) != "=") {
-                return new XmlContentPosition();
-            }
-        }
-
         var contentLength:int = contentToBegin.length;
         while (contentLength-- > 0) {
             processedChar = contentToBegin.charAt(contentLength);

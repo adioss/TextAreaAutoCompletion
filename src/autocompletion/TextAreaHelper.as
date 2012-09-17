@@ -120,9 +120,6 @@ public class TextAreaHelper {
         content = content.replace(/(=")(\s*\w*\s*)(")/gi, "$1$3");
         // delete space between " and >
         content = content.replace(/(")(\s+)(>)/gi, "$1$3");
-        if (content.charAt(content.length - 1) == "\"") {
-            content += " ";
-        }
         return content;
     }
 }

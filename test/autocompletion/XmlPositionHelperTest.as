@@ -145,11 +145,6 @@ public class XmlPositionHelperTest {
     public function shouldRetrieveContentCompletionInformation():void {
         var currentPositionTested:XmlPosition;
 
-        m_textArea.text = "<BOOK ISBN=\"9782212090819\"";
-        m_textArea.selectionBeginIndex = m_textArea.text.length;
-        currentPositionTested = m_xmlPositionHelper.getCurrentXmlPosition();
-        Assert.assertTrue(currentPositionTested is XmlContentPosition);
-
         m_textArea.text = ">    ld";
         m_textArea.selectionBeginIndex = m_textArea.text.length;
         currentPositionTested = m_xmlPositionHelper.getCurrentXmlPosition();
