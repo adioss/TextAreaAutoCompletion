@@ -131,7 +131,9 @@ public class AutoCompletion {
         if (tagCompletions != null && tagCompletions.length > 0) {
             initializeAutoCompleteList(tagCompletions.source, presetChars);
             var currentPosition:Point = TextAreaHelper.getTextAreaCurrentGlobalCursorPosition(m_textArea,
-                    havePreset ? presetChars.length : 0);
+                                                                                              havePreset ?
+                                                                                                      presetChars.length :
+                                                                                                      0);
             var presetOffset:int = havePreset ? presetChars.length : 0;
             m_beginPosition = m_textArea.selectionBeginIndex - presetOffset;
             m_endPosition = m_textArea.selectionBeginIndex;
@@ -267,7 +269,7 @@ public class AutoCompletion {
         if (beginTagName != null && beginTagName.length > 0) {
             var retrieveAttributeCompletionInformation:ArrayCollection = m_schemaParser.
                     retrieveAttributeCompletionInformation(new XmlAttributePosition(beginTagName,
-                    null), filterByRequiredUse);
+                                                                                    null), filterByRequiredUse);
             if (retrieveAttributeCompletionInformation != null && retrieveAttributeCompletionInformation.length > 0) {
                 firstAttribute = String(retrieveAttributeCompletionInformation.getItemAt(0));
             }
@@ -312,7 +314,8 @@ public class AutoCompletion {
             wordList = filterWordListWithCurrentTypedWord();
         }
         m_autoCompleteList.dataProvider = wordList;
-        m_autoCompleteList.rowCount = wordList.length > AUTOCOMPLETION_MAX_ROW_COUNT ? AUTOCOMPLETION_MAX_ROW_COUNT : wordList.length;
+        m_autoCompleteList.rowCount =
+                wordList.length > AUTOCOMPLETION_MAX_ROW_COUNT ? AUTOCOMPLETION_MAX_ROW_COUNT : wordList.length;
     }
 
     private function showAutoCompleteCanvas(currentPosition:Point):void {
@@ -356,7 +359,9 @@ public class AutoCompletion {
             return;
         }
         m_autoCompleteList.dataProvider = newFilteredWordList;
-        m_autoCompleteList.rowCount = newFilteredWordList.length > AUTOCOMPLETION_MAX_ROW_COUNT ? AUTOCOMPLETION_MAX_ROW_COUNT : newFilteredWordList.length;
+        m_autoCompleteList.rowCount =
+                newFilteredWordList.length > AUTOCOMPLETION_MAX_ROW_COUNT ? AUTOCOMPLETION_MAX_ROW_COUNT :
+                        newFilteredWordList.length;
         m_autoCompleteList.selectedIndex = 0;
     }
 

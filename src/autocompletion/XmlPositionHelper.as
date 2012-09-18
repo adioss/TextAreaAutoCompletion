@@ -64,18 +64,18 @@ public class XmlPositionHelper {
                 case "<":
                     if (isAttributeEditionPosition && attributeNameCollected) {
                         return new XmlAttributeEditionPosition(format(collectedTagName),
-                                format(collectedAttributeName),
-                                format(attributeEditionContent));
+                                                               format(collectedAttributeName),
+                                                               format(attributeEditionContent));
                     } else if (collectedTagName != "") {
                         var xmlAttributePosition:XmlAttributePosition = new XmlAttributePosition(
                                 format(collectedTagName),
                                 format(attributeEditionContent != null && attributeEditionContent != ""
-                                        ? attributeEditionContent : collectedAttributeName),
+                                               ? attributeEditionContent : collectedAttributeName),
                                 alreadyUsedAttributes.length > 0 ? alreadyUsedAttributes : null);
                         return completeWithNextUsedAttributes(content, currentPosition, xmlAttributePosition);
                     } else {
                         return new XmlBeginTagPosition(findParentTagName(contentToBegin),
-                                format(collectedAttributeName));
+                                                       format(collectedAttributeName));
                     }
                 case "/":
                     if (contentToBegin.charAt(contentLength - 1) == "<") {
@@ -250,7 +250,8 @@ public class XmlPositionHelper {
         return null;
     }
 
-    public static function completeWithNextUsedAttributes(content:String, currentPosition:int, xmlAttributePosition:XmlAttributePosition):XmlAttributePosition {
+    public static function completeWithNextUsedAttributes(content:String, currentPosition:int,
+                                                          xmlAttributePosition:XmlAttributePosition):XmlAttributePosition {
         var contentToEnd:String = TextAreaHelper.prepareContent(getTextToEnd(content, currentPosition));
         var stopCollecting:Boolean = false;
         var processedChar:String;

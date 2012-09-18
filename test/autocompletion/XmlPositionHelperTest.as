@@ -285,9 +285,11 @@ public class XmlPositionHelperTest {
         Assert.assertEquals(xmlAttributePositionTested.alreadyUsedAttributes.length, 1);
         Assert.assertTrue(xmlAttributePositionTested.alreadyUsedAttributes.contains("message"));
 
-        content = "<routes><route><multicast streaming=\"true\" timeout=\"\"  id=\"oik\"  shareUnitOfWork=\"\"></multicast>";
+        content =
+                "<routes><route><multicast streaming=\"true\" timeout=\"\"  id=\"oik\"  shareUnitOfWork=\"\"></multicast>";
         xmlAttributePosition = new XmlAttributePosition("multicast", "", new ArrayCollection());
-        xmlAttributePositionTested = XmlPositionHelper.completeWithNextUsedAttributes(content, 54, xmlAttributePosition);
+        xmlAttributePositionTested =
+                XmlPositionHelper.completeWithNextUsedAttributes(content, 54, xmlAttributePosition);
         Assert.assertNotNull(xmlAttributePositionTested.alreadyUsedAttributes);
         Assert.assertEquals(xmlAttributePositionTested.alreadyUsedAttributes.length, 2);
         Assert.assertTrue(xmlAttributePositionTested.alreadyUsedAttributes.contains("id"));

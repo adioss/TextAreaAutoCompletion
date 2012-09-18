@@ -9,7 +9,8 @@ package autocompletion.model.position {
 public class XmlAttributeEditionPosition extends XmlAttributePosition {
     public var currentAttributeName:String;
 
-    public function XmlAttributeEditionPosition(currentTagName:String, currentAttributeName:String, presetChars:String) {
+    public function XmlAttributeEditionPosition(currentTagName:String, currentAttributeName:String,
+                                                presetChars:String) {
         super(currentTagName, presetChars);
         this.currentAttributeName = currentAttributeName;
     }

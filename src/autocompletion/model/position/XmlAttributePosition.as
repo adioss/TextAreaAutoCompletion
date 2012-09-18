@@ -12,7 +12,8 @@ public class XmlAttributePosition extends XmlBasicPosition {
     public var currentTagName:String;
     public var alreadyUsedAttributes:ArrayCollection;
 
-    public function XmlAttributePosition(currentTagName:String, presetChars:String, alreadyUsedAttributes:ArrayCollection = null) {
+    public function XmlAttributePosition(currentTagName:String, presetChars:String,
+                                         alreadyUsedAttributes:ArrayCollection = null) {
         this.currentTagName = currentTagName;
         this.alreadyUsedAttributes = alreadyUsedAttributes;
         super(presetChars);

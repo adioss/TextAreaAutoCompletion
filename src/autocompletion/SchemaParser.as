@@ -56,7 +56,8 @@ public class SchemaParser {
             schemaDescription.simpleTypes = getSchemaSimpleTypes(schema, schemaInformation.standardNameSpace);
             schemaDescription.elements = getSchemaElements(schema, schemaInformation.standardNameSpace);
             schemaDescription.complexTypes = getSchemaComplexTypes(schema, schemaInformation.standardNameSpace);
-            schemaDescription.abstractComplexTypes = getAbstractComplexTypes(schema, schemaInformation.standardNameSpace);
+            schemaDescription.abstractComplexTypes =
+                    getAbstractComplexTypes(schema, schemaInformation.standardNameSpace);
             // by default, take schema prefix, otherwise xs1, xs2...
             var schemaIndex:String = DEFAULT_SCHEMA_PREFIX + SchemaParser.countDictionaryKeys(m_schemaDescriptions);
             prefix = countDictionaryKeys(m_schemaDescriptions) > 0 ? schemaIndex : DEFAULT_SCHEMA_INDEX;
@@ -127,10 +128,12 @@ public class SchemaParser {
         m_currentSchemaDescription = m_schemaDescriptions[index];
     }
 
-    public function retrieveAttributeCompletionInformation(position:XmlAttributePosition, filterFunction:Function = null):ArrayCollection /* of String */ {
+    public function retrieveAttributeCompletionInformation(position:XmlAttributePosition,
+                                                           filterFunction:Function = null):ArrayCollection /* of String */ {
         fillCurrentSchemaDescription(position.currentTagName);
         if (m_currentSchemaDescription != null) {
-            var availableChildren:ArrayCollection = findAvailableChildren(position.currentTagName, position.presetChars, PROCESS_ATTRIBUTE, filterFunction);
+            var availableChildren:ArrayCollection = findAvailableChildren(position.currentTagName, position.presetChars,
+                                                                          PROCESS_ATTRIBUTE, filterFunction);
             if (position.alreadyUsedAttributes != null && availableChildren != null) {
                 for each (var alreadyUsedAttribute:String in position.alreadyUsedAttributes) {
                     if (availableChildren.contains(alreadyUsedAttribute)) {
@@ -162,15 +165,17 @@ public class SchemaParser {
                 var schema:XML = m_currentSchemaDescription.schema;
                 var standardNameSpace:Namespace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
                 var complexTypeName:String = String(schema.standardNameSpace::element
-                        .(attribute("name") == position.currentTagName)
-                        .attribute("type").toXMLString())
-                        .replace(m_currentSchemaDescription.schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
+                                                            .(attribute("name") == position.currentTagName)
+                                                            .attribute("type").toXMLString())
+                        .replace(m_currentSchemaDescription
+                                         .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
                 // TODO: match ALL...not only here...
                 var simpleTypeName:String = String(schema.standardNameSpace::complexType
-                        .(attribute("name") == complexTypeName)..*::attribute
-                        .(attribute("name") == position.currentAttributeName)
-                        .attribute("type").toXMLString())
-                        .replace(m_currentSchemaDescription.schemaInformation.standardNameSpace.prefix.toString() + ":", "");
+                                                           .(attribute("name") == complexTypeName)..*::attribute
+                                                           .(attribute("name") == position.currentAttributeName)
+                                                           .attribute("type").toXMLString())
+                        .replace(m_currentSchemaDescription
+                                         .schemaInformation.standardNameSpace.prefix.toString() + ":", "");
                 if (simpleTypeName == "boolean") {
                     result = new ArrayCollection(["true", "false"]);
                 }
@@ -180,7 +185,8 @@ public class SchemaParser {
     }
 
     //region Tag processing
-    private function findAvailableChildren(parent:String, presetChars:String, type:String, filterFunction:Function = null):ArrayCollection {
+    private function findAvailableChildren(parent:String, presetChars:String, type:String,
+                                           filterFunction:Function = null):ArrayCollection {
         var complexType:XML = findComplexType(parent);
         var complexTypesProcessed:ArrayCollection = processComplexType(complexType, presetChars, type, filterFunction);
         return complexTypesProcessed;
@@ -195,7 +201,8 @@ public class SchemaParser {
                 var type:String = element.attribute("type");
                 if (type != null && type != "") { // complex type description in other tag
                     var convertType:String = type.replace(m_currentSchemaDescription
-                            .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
+                                                                  .schemaInformation.schemaNameSpace.prefix.toString() +
+                                                                  ":", "");
                     complexType = m_currentSchemaDescription.complexTypes[convertType];
                     return complexType;
                 } else if (element.hasComplexContent()) { // complex type description in other tag
@@ -219,7 +226,8 @@ public class SchemaParser {
         return null;
     }
 
-    private function processComplexType(complexType:XML, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
+    private function processComplexType(complexType:XML, presetChars:String, type:String,
+                                        filterFunction:Function):ArrayCollection {
         if (complexType != null && complexType.length() > 0) {
             var result:ArrayCollection = new ArrayCollection();
             var complexTypeChildren:XMLList = complexType.children();
@@ -231,7 +239,8 @@ public class SchemaParser {
         return null;
     }
 
-    private function processContent(result:ArrayCollection, complexType:XML, presetChars:String, type:String, filterFunction:Function):void {
+    private function processContent(result:ArrayCollection, complexType:XML, presetChars:String, type:String,
+                                    filterFunction:Function):void {
         var complexTypeLocalName:String = complexType.localName();
         if (complexTypeLocalName == "complexContent") {
             append(result, processComplexContent(complexType, presetChars, type, filterFunction));
@@ -242,7 +251,8 @@ public class SchemaParser {
         }
     }
 
-    private function processComplexContent(complexType:XML, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
+    private function processComplexContent(complexType:XML, presetChars:String, type:String,
+                                           filterFunction:Function):ArrayCollection {
         var result:ArrayCollection = new ArrayCollection();
         var complexContents:XMLList = complexType.children();
         for each (var complexContent:XML in complexContents) {
@@ -250,7 +260,8 @@ public class SchemaParser {
             if ("extension" == complexContentName) {
                 var base:String = complexContent.attribute("base");
                 var baseType:String = base.replace(m_currentSchemaDescription
-                        .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
+                                                           .schemaInformation.schemaNameSpace.prefix.toString() + ":",
+                                                   "");
                 append(result, processExtension(baseType, presetChars, type, filterFunction));
             } else if ("sequence" == complexContentName) {
                 append(result, processSequence(complexContent, presetChars, type));
@@ -267,7 +278,8 @@ public class SchemaParser {
         return result;
     }
 
-    private function processExtension(baseType:String, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
+    private function processExtension(baseType:String, presetChars:String, type:String,
+                                      filterFunction:Function):ArrayCollection {
         if (m_currentSchemaDescription != null) {
             var result:ArrayCollection = new ArrayCollection();
             var complexType:XML = m_currentSchemaDescription.abstractComplexTypes[baseType];
@@ -289,7 +301,8 @@ public class SchemaParser {
                 if (sequenceChild.hasOwnProperty("@ref")) {
                     var element:String = sequenceChild.attribute("ref");
                     var item:String = element.replace(m_currentSchemaDescription
-                            .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
+                                                              .schemaInformation.schemaNameSpace.prefix.toString() +
+                                                              ":", "");
                     appendItem(result, item, presetChars);
                 } else if (sequenceChild.hasOwnProperty("@name")) {
                     appendItem(result, String(sequenceChild.attribute("name")), presetChars);
@@ -310,7 +323,7 @@ public class SchemaParser {
             if ("element" == choiceName && type == PROCESS_TAG) {
                 var ref:String = choiceChild.attribute("ref");
                 var item:String = ref.replace(m_currentSchemaDescription
-                        .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
+                                                      .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
                 appendItem(result, item, presetChars);
             }
         }
@@ -320,7 +333,8 @@ public class SchemaParser {
     //endregion
 
     //region Utils
-    private static function appendAttribute(complexType:XML, result:ArrayCollection, presetChars:String, filterFunction:Function = null):void {
+    private static function appendAttribute(complexType:XML, result:ArrayCollection, presetChars:String,
+                                            filterFunction:Function = null):void {
         if (filterFunction != null) {
             if (filterFunction(complexType)) {
                 appendItem(result, complexType.attribute("name"), presetChars);

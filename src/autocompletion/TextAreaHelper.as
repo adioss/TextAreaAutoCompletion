@@ -45,7 +45,8 @@ public class TextAreaHelper {
         var nextCharIndex:int;
         var nextCharBounds:Rectangle;
         if (index == 0) {
-            cursorPoint.x = (textField.getTextFormat(0).indent as Number) + (textField.getTextFormat(0).leftMargin as Number);
+            cursorPoint.x =
+                    (textField.getTextFormat(0).indent as Number) + (textField.getTextFormat(0).leftMargin as Number);
         } else if (index == text.length) {
             previousCharIndex = getPreviousCharacterIndex(text, index);
             numberOfNewlines = index - (previousCharIndex + 1);
@@ -56,11 +57,14 @@ public class TextAreaHelper {
                 cursorPoint.x = previousCharBounds.x + previousCharBounds.width;
                 cursorPoint.y = previousCharBounds.y;
             } else if (previousCharIndex != -1) {
-                cursorPoint.x = (textField.getTextFormat(index - 1).indent as Number) + (textField.getTextFormat(index - 1).leftMargin as Number);
+                cursorPoint.x = (textField.getTextFormat(index - 1).indent as Number) +
+                        (textField.getTextFormat(index - 1).leftMargin as Number);
                 previousCharFormat = textField.getTextFormat(previousCharIndex);
-                cursorPoint.y = previousCharBounds.y + (previousCharBounds.height - HEIGHT_PADDING) + ((previousCharFormat.leading as Number) * numberOfNewlines);
+                cursorPoint.y = previousCharBounds.y + (previousCharBounds.height - HEIGHT_PADDING) +
+                        ((previousCharFormat.leading as Number) * numberOfNewlines);
             } else {
-                cursorPoint.x = (textField.getTextFormat(0).indent as Number) + (textField.getTextFormat(0).leftMargin as Number);
+                cursorPoint.x = (textField.getTextFormat(0).indent as Number) +
+                        (textField.getTextFormat(0).leftMargin as Number);
                 cursorPoint.y = ((textField.getTextFormat(0).leading as Number) * numberOfNewlines);
             }
         } else {
@@ -78,7 +82,8 @@ public class TextAreaHelper {
                 previousCharBounds = textField.getCharBoundaries(previousCharIndex);
                 numberOfNewlines = index - (previousCharIndex);
                 cursorPoint.x = (textField.getTextFormat(previousCharIndex).indent as Number);
-                cursorPoint.y = previousCharBounds.y + (previousCharBounds.height - HEIGHT_PADDING) + ((textField.getTextFormat(previousCharIndex).leading as Number) * numberOfNewlines);
+                cursorPoint.y = previousCharBounds.y + (previousCharBounds.height - HEIGHT_PADDING) +
+                        ((textField.getTextFormat(previousCharIndex).leading as Number) * numberOfNewlines);
             }
         }
         return cursorPoint;
@@ -104,7 +109,8 @@ public class TextAreaHelper {
 
     public static function getPreviousCharBounds(textArea:TextArea):Rectangle {
         var charBoundaries:Rectangle = textArea.getTextField().getCharBoundaries(textArea.selectionBeginIndex - 1);
-        return charBoundaries != null ? charBoundaries : new Rectangle(0, 0, DEFAULT_CHAR_BOUNDARIES_WIDTH, DEFAULT_CHAR_BOUNDARIES_HEIGHT);
+        return charBoundaries != null ? charBoundaries :
+                new Rectangle(0, 0, DEFAULT_CHAR_BOUNDARIES_WIDTH, DEFAULT_CHAR_BOUNDARIES_HEIGHT);
     }
 
     public static function prepareContent(content:String):String {
