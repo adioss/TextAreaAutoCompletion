@@ -103,9 +103,9 @@ public class SchemaParserTest {
         var result:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position);
         Assert.assertNotNull(result);
         Assert.assertEquals(result.length, 3);
-        Assert.assertTrue(result.contains("orderperson"));
-        Assert.assertTrue(result.contains("shipto"));
-        Assert.assertTrue(result.contains("item"));
+        Assert.assertTrue(result.contains("xs1:orderperson"));
+        Assert.assertTrue(result.contains("xs1:shipto"));
+        Assert.assertTrue(result.contains("xs1:item"));
     }
 
     [Test]

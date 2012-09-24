@@ -363,9 +363,12 @@ public class SchemaParser {
         result.addItem(item);
     }
 
-    private static function append(result:ArrayCollection, processComplexContent:ArrayCollection):void {
+    private function append(result:ArrayCollection, processComplexContent:ArrayCollection):void {
         for each (var tag:String in processComplexContent) {
             if (!result.contains(tag) && tag != "") {
+                if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
+                    tag = m_currentSchemaDescription.prefix + ":" + tag;
+                }
                 result.addItem(tag);
             }
         }

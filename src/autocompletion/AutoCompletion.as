@@ -90,8 +90,7 @@ public class AutoCompletion {
                                  XmlAttributePosition(m_currentXmlPosition).currentTagName);
             } else if (m_currentXmlPosition is XmlBeginTagPosition) {
                 var position:XmlBeginTagPosition = XmlBeginTagPosition(m_currentXmlPosition);
-                var tags:ArrayCollection =
-                        m_schemaParser.retrieveTagCompletionInformation(position);
+                var tags:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position);
                 if (tags != null && tags.length == 1 && tags.getItemAt(0) == position.presetChars) {
                     clauseCurrentTag(String.fromCharCode(event.charCode), position.presetChars);
                 }
@@ -139,11 +138,8 @@ public class AutoCompletion {
         }
         if (tagCompletions != null && tagCompletions.length > 0) {
             initializeAutoCompleteList(tagCompletions.source, presetChars);
-            var currentPosition:Point = TextAreaHelper.getTextAreaCurrentGlobalCursorPosition(m_textArea,
-                                                                                              havePreset ?
-                                                                                                      presetChars.length :
-                                                                                                      0);
             var presetOffset:int = havePreset ? presetChars.length : 0;
+            var currentPosition:Point = TextAreaHelper.getTextAreaCurrentGlobalCursorPosition(m_textArea, presetOffset);
             m_beginPosition = m_textArea.selectionBeginIndex - presetOffset;
             m_endPosition = m_textArea.selectionBeginIndex;
             showAutoCompleteCanvas(currentPosition);
