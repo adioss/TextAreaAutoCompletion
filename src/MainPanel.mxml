@@ -51,6 +51,10 @@
             for each (var object:Object in m_schemas) {
                 schemas.addItem(object.file);
             }
+            if (m_autoCompletion != null) {
+                m_autoCompletion.stopCompletion();
+                m_autoCompletion = null;
+            }
             m_autoCompletion = new AutoCompletion(textArea, schemas);
             textArea.text = m_autoCompletion.generateHeaderForSchemaDescriptions(rootTagName.text);
         }

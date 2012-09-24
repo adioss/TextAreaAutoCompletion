@@ -79,9 +79,10 @@ public class XmlPositionHelper {
                     }
                 case "/":
                     if (contentToBegin.charAt(contentLength - 1) == "<") {
-                        return new XmlEndTagPosition(
-                                findAssociatedTagName(contentToBegin, format(collectedAttributeName)),
-                                collectedAttributeName != "" ? format(collectedAttributeName) : null);
+                        return new XmlEndTagPosition(findAssociatedTagName(contentToBegin,
+                                                                           format(collectedAttributeName)),
+                                                     collectedAttributeName != "" ? format(collectedAttributeName) :
+                                                             null);
                     }
                     break;
                 case ">":

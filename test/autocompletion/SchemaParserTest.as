@@ -17,11 +17,15 @@ public class SchemaParserTest {
     [Embed(source="/assets/camel-spring-2.9.1.xml")]
     private var CAMEL_SPRING_XSD:Class;
 
+    [Embed(source="/assets/simple.xml")]
+    private var SIMPLE_XSD:Class;
+
     private var m_schemaParser:SchemaParser;
 
     public function SchemaParserTest() {
-        var arrayCollection:ArrayCollection = new ArrayCollection([CAMEL_SPRING_XSD.data as XML]);
-        m_schemaParser = new SchemaParser(arrayCollection);
+        var schemas:ArrayCollection = new ArrayCollection(
+                [(CAMEL_SPRING_XSD.data as XML), (SIMPLE_XSD.data as XML)]);
+        m_schemaParser = new SchemaParser(schemas);
     }
 
     [Test]
@@ -94,8 +98,20 @@ public class SchemaParserTest {
     }
 
     [Test]
-    public function shouldParseSchema():void {
+    public function shouldRetrieveInDifferentSchema():void {
+        var position:XmlBeginTagPosition = new XmlBeginTagPosition("xs1:shiporder", "xs1:");
+        var result:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.length, 3);
+        Assert.assertTrue(result.contains("orderperson"));
+        Assert.assertTrue(result.contains("shipto"));
+        Assert.assertTrue(result.contains("item"));
+    }
 
+    [Test]
+    public function shouldRetrieveFirstElementWithoutPatent():void {
+        var position:XmlBeginTagPosition = new XmlBeginTagPosition("", "xs1:");
+        var result:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position);
     }
 }
 }

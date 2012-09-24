@@ -111,19 +111,31 @@ public class SchemaParser {
     //endregion
 
     public function retrieveTagCompletionInformation(position:XmlBeginTagPosition):ArrayCollection {
-        if (position.parentTagName != null) {
-            fillCurrentSchemaDescription(position.presetChars);
+        var parentTagName:String = position.parentTagName;
+        if (parentTagName != null) {
+            var presetChars:String = position.presetChars;
+            fillCurrentSchemaDescription(presetChars);
             if (m_currentSchemaDescription != null) {
-                return findAvailableChildren(position.parentTagName, position.presetChars, PROCESS_TAG);
+                if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
+                    // find prefix on parent tag
+                    if (parentTagName.indexOf(m_currentSchemaDescription.prefix) != -1) {
+                        parentTagName = parentTagName.slice(parentTagName.indexOf(":") + 1, parentTagName.length);
+                    } else {
+                        parentTagName = "";
+                    }
+                    presetChars = presetChars.slice(m_currentSchemaDescription.prefix.length + 1,
+                                                    presetChars.length);
+                }
+                return findAvailableChildren(parentTagName, presetChars, PROCESS_TAG);
             }
         }
         return null;
     }
 
-    private function fillCurrentSchemaDescription(tagName:String):void {
+    private function fillCurrentSchemaDescription(content:String):void {
         var index:String = DEFAULT_SCHEMA_INDEX;
-        if (tagName != null && tagName.length > 0 && tagName.indexOf(":") > 0) {
-            index = tagName.split(0, tagName.indexOf(":"))[0];
+        if (content != null && content.length > 0 && content.indexOf(":") > 0) {
+            index = content.slice(0, content.indexOf(":"));
         }
         m_currentSchemaDescription = m_schemaDescriptions[index];
     }

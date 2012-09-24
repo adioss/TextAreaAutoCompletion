@@ -38,6 +38,9 @@ public class AutoCompletion {
     private static const AUTOCOMPLETION_ROLLOVER_COLOR:int = 0xA4D3EE;
     private static const AUTOCOMPLETION_LIST_WIDTH:int = 160;
 
+    private static const SLASH_CHAR:String = "/";
+    private static const GREATER_CHAR:String = ">";
+
     private var m_textArea:TextArea;
     private var m_beginPosition:int = -1;
     private var m_endPosition:int = -1;
@@ -63,6 +66,10 @@ public class AutoCompletion {
         }
     }
 
+    public function stopCompletion():void {
+        m_textArea.removeEventListener(KeyboardEvent.KEY_DOWN, onTextAreaKeyDown);
+    }
+
     //region Events
     private function onTextAreaKeyDown(event:KeyboardEvent):void {
         if (event.ctrlKey && event.keyCode == Keyboard.SPACE) {
@@ -75,16 +82,18 @@ public class AutoCompletion {
             } else if (m_currentXmlPosition is XmlEndTagPosition) {
                 completeEndTag();
             }
-        } else if (event.charCode == 47 || event.charCode == 62) { // for "/" and ">"
+        } else if (String.fromCharCode(event.charCode) == SLASH_CHAR ||
+                String.fromCharCode(event.charCode) == GREATER_CHAR) { // for "/" and ">"
             m_currentXmlPosition = m_xmlPositionHelper.getCurrentXmlPosition();
             if (m_currentXmlPosition is XmlAttributePosition) {
-                clauseCurrentTag(event.charCode, XmlAttributePosition(m_currentXmlPosition).currentTagName);
+                clauseCurrentTag(String.fromCharCode(event.charCode),
+                                 XmlAttributePosition(m_currentXmlPosition).currentTagName);
             } else if (m_currentXmlPosition is XmlBeginTagPosition) {
                 var position:XmlBeginTagPosition = XmlBeginTagPosition(m_currentXmlPosition);
                 var tags:ArrayCollection =
                         m_schemaParser.retrieveTagCompletionInformation(position);
                 if (tags != null && tags.length == 1 && tags.getItemAt(0) == position.presetChars) {
-                    clauseCurrentTag(event.charCode, position.presetChars);
+                    clauseCurrentTag(String.fromCharCode(event.charCode), position.presetChars);
                 }
             }
         }
@@ -222,14 +231,14 @@ public class AutoCompletion {
         m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
     }
 
-    private function clauseCurrentTag(charCode:uint, tagCompletion:String):void {
+    private function clauseCurrentTag(currentChar:String, tagCompletion:String):void {
         var content:String = m_textArea.text;
         var currentPosition:int = m_textArea.selectionBeginIndex;
         var textToAppend:String = "";
-        if (charCode == 62) {
+        if (currentChar == GREATER_CHAR) {
             m_endPosition = currentPosition + 1;
             textToAppend = ">" + "</" + tagCompletion + ">";
-        } else if (charCode == 47) {
+        } else if (currentChar == SLASH_CHAR) {
             textToAppend = "/>";
             m_endPosition = currentPosition + textToAppend.length;
         }
@@ -392,7 +401,7 @@ public class AutoCompletion {
 
     //endregion
 
-    //region
+    //region Utils
     public function generateHeaderForSchemaDescriptions(rootTagName:String):String {
         return m_schemaParser.generateHeaderForSchemaDescriptions(rootTagName);
     }
