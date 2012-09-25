@@ -21,6 +21,7 @@ public class SchemaParser {
     private static const PROCESS_ATTRIBUTE:String = "processAttribute";
     private static const DEFAULT_SCHEMA_INDEX:String = "default";
     private static const DEFAULT_SCHEMA_PREFIX:String = "xs";
+    private static const XML_NAMESPACE_DECLARATION:String = "xmlns";
 
     private var m_schemaDescriptions:Dictionary = new Dictionary();// of SchemaDescription
     private var m_currentSchemaDescription:SchemaDescription;
@@ -100,36 +101,12 @@ public class SchemaParser {
         var result:Dictionary = new Dictionary();
         var complexTypes:XMLList = schema.standardNameSpace::complexType;
         for each (var complexType:XML in complexTypes) {
-            var name:String = complexType.attribute("name");
             if ("@abstract" in complexType && parseBooleanAttribute(complexType, "abstract")) {
+                var name:String = complexType.attribute("name");
                 result[name] = complexType;
             }
         }
         return result;
-    }
-
-    //endregion
-
-    public function retrieveTagCompletionInformation(position:XmlBeginTagPosition):ArrayCollection {
-        var parentTagName:String = position.parentTagName;
-        if (parentTagName != null) {
-            var presetChars:String = position.presetChars;
-            fillCurrentSchemaDescription(presetChars);
-            if (m_currentSchemaDescription != null) {
-                if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
-                    // find prefix on parent tag
-                    if (parentTagName.indexOf(m_currentSchemaDescription.prefix) != -1) {
-                        parentTagName = parentTagName.slice(parentTagName.indexOf(":") + 1, parentTagName.length);
-                    } else {
-                        parentTagName = "";
-                    }
-                    presetChars = presetChars.slice(m_currentSchemaDescription.prefix.length + 1,
-                                                    presetChars.length);
-                }
-                return findAvailableChildren(parentTagName, presetChars, PROCESS_TAG);
-            }
-        }
-        return null;
     }
 
     private function fillCurrentSchemaDescription(content:String):void {
@@ -140,12 +117,42 @@ public class SchemaParser {
         m_currentSchemaDescription = m_schemaDescriptions[index];
     }
 
+    //endregion
+
+    //region Content retrieving
+    public function retrieveTagCompletionInformation(position:XmlBeginTagPosition):ArrayCollection {
+        var parentTagName:String = position.parentTagName;
+        var presetChars:String = position.presetChars;
+        fillCurrentSchemaDescription(presetChars);
+        if (m_currentSchemaDescription != null) {
+            if (parentTagName != null && parentTagName != "" && isParentTagNameCorrespondToSearch(parentTagName)) {
+                if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
+                    // find prefix on parent tag
+                    if (parentTagName.indexOf(m_currentSchemaDescription.prefix) != -1) {
+                        parentTagName = parentTagName.slice(parentTagName.indexOf(":") + 1, parentTagName.length);
+                    } else {
+                        parentTagName = "";
+                    }
+                    // reset schema prefix from preset chars
+                    presetChars = presetChars.slice(m_currentSchemaDescription.prefix.length + 1,
+                                                    presetChars.length);
+                }
+                return findAvailableChildren(parentTagName, presetChars, PROCESS_TAG);
+            } else {
+                //TODO: only for simple xsd style, too complex for other stuff for the moment
+                return new ArrayCollection([extractFirstElementNameFromCurrentSchema()]);
+            }
+        }
+        return null;
+    }
+
     public function retrieveAttributeCompletionInformation(position:XmlAttributePosition,
                                                            filterFunction:Function = null):ArrayCollection /* of String */ {
+        var availableChildren:ArrayCollection;
         fillCurrentSchemaDescription(position.currentTagName);
         if (m_currentSchemaDescription != null) {
-            var availableChildren:ArrayCollection = findAvailableChildren(position.currentTagName, position.presetChars,
-                                                                          PROCESS_ATTRIBUTE, filterFunction);
+            availableChildren = findAvailableChildren(position.currentTagName, position.presetChars,
+                                                      PROCESS_ATTRIBUTE, filterFunction);
             if (position.alreadyUsedAttributes != null && availableChildren != null) {
                 for each (var alreadyUsedAttribute:String in position.alreadyUsedAttributes) {
                     if (availableChildren.contains(alreadyUsedAttribute)) {
@@ -155,7 +162,7 @@ public class SchemaParser {
             }
             return availableChildren;
         }
-        return null;
+        return availableChildren;
     }
 
     public function retrieveAttributeEditionCompletionInformation(position:XmlAttributeEditionPosition):ArrayCollection /* of String */ {
@@ -178,17 +185,19 @@ public class SchemaParser {
                 var standardNameSpace:Namespace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
                 var complexTypeName:String = String(schema.standardNameSpace::element
                                                             .(attribute("name") == position.currentTagName)
-                                                            .attribute("type").toXMLString())
+                                                            .attribute("type").toXMLString());
+                var complexTypeNameWithoutPrefix:String = complexTypeName
                         .replace(m_currentSchemaDescription
                                          .schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
                 // TODO: match ALL...not only here...
-                var simpleTypeName:String = String(schema.standardNameSpace::complexType
-                                                           .(attribute("name") == complexTypeName)..*::attribute
+                var simpleTypeName:String = String(schema.standardNameSpace::complexType.
+                                                           (attribute("name") == complexTypeNameWithoutPrefix)
+                                                           ..*::attribute
                                                            .(attribute("name") == position.currentAttributeName)
-                                                           .attribute("type").toXMLString())
-                        .replace(m_currentSchemaDescription
-                                         .schemaInformation.standardNameSpace.prefix.toString() + ":", "");
-                if (simpleTypeName == "boolean") {
+                                                           .attribute("type").toXMLString());
+                var simpleTypeNameWithoutPrefix:String = simpleTypeName.replace(
+                        m_currentSchemaDescription.schemaInformation.standardNameSpace.prefix.toString() + ":", "");
+                if (simpleTypeNameWithoutPrefix == "boolean") {
                     result = new ArrayCollection(["true", "false"]);
                 }
             }
@@ -196,12 +205,16 @@ public class SchemaParser {
         return result;
     }
 
+    //endregion
+
     //region Tag processing
     private function findAvailableChildren(parent:String, presetChars:String, type:String,
                                            filterFunction:Function = null):ArrayCollection {
         var complexType:XML = findComplexType(parent);
-        var complexTypesProcessed:ArrayCollection = processComplexType(complexType, presetChars, type, filterFunction);
-        return complexTypesProcessed;
+        if (complexType != null && complexType.length() > 0) {
+            return processComplexType(complexType, presetChars, type, filterFunction);
+        }
+        return null;
     }
 
     private function findComplexType(parent:String):XML {
@@ -342,6 +355,30 @@ public class SchemaParser {
         return result;
     }
 
+    private function extractFirstElementNameFromCurrentSchema():String {
+        var name:String;
+        var schema:XML = m_currentSchemaDescription.schema;
+        var standardNameSpace:Namespace = m_currentSchemaDescription.schemaInformation.standardNameSpace;
+        var elements:XMLList = schema.standardNameSpace::element;
+        if (elements != null && elements.length() > 0) {
+            var element:XML = elements[0];
+            name = String(element.attribute("name"));
+            if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
+                name = m_currentSchemaDescription.prefix + ":" + name;
+            }
+
+        }
+        return name;
+    }
+
+    private function isParentTagNameCorrespondToSearch(parentTagName:String):Boolean {
+        if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX
+                && parentTagName.indexOf(m_currentSchemaDescription.prefix) != 0) {
+            return false;
+        }
+        return true;
+    }
+
     //endregion
 
     //region Utils
@@ -400,7 +437,7 @@ public class SchemaParser {
         if (rootTagName != null && rootTagName.length > 0) {
             var result:String = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<" + rootTagName;
             for each (var schemaDescription:SchemaDescription in m_schemaDescriptions) {
-                result += " xmlns";
+                result += " " + XML_NAMESPACE_DECLARATION;
                 if (schemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
                     result += ":" + schemaDescription.prefix;
                 }

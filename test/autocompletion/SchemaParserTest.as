@@ -112,6 +112,8 @@ public class SchemaParserTest {
     public function shouldRetrieveFirstElementWithoutPatent():void {
         var position:XmlBeginTagPosition = new XmlBeginTagPosition("", "xs1:");
         var result:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position);
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result.contains("xs1:shiporder"));
     }
 }
 }

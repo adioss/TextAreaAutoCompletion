@@ -67,7 +67,9 @@ public class AutoCompletion {
     }
 
     public function stopCompletion():void {
-        m_textArea.removeEventListener(KeyboardEvent.KEY_DOWN, onTextAreaKeyDown);
+        if (m_textArea != null) {
+            m_textArea.removeEventListener(KeyboardEvent.KEY_DOWN, onTextAreaKeyDown);
+        }
     }
 
     //region Events
@@ -399,7 +401,10 @@ public class AutoCompletion {
 
     //region Utils
     public function generateHeaderForSchemaDescriptions(rootTagName:String):String {
-        return m_schemaParser.generateHeaderForSchemaDescriptions(rootTagName);
+        if (m_schemaParser) {
+            return m_schemaParser.generateHeaderForSchemaDescriptions(rootTagName);
+        }
+        return "";
     }
 
     //endregion
