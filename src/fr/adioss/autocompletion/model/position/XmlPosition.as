@@ -5,7 +5,7 @@
  * Time: 21:48
  *
  */
-package autocompletion.model.position {
+package fr.adioss.autocompletion.model.position {
 public class XmlPosition {
     public function XmlPosition() {
     }

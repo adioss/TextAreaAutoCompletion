@@ -4,7 +4,7 @@
  * Date: 01/08/12
  * Time: 00:49
  */
-package autocompletion {
+package fr.adioss.autocompletion {
 import flash.geom.Point;
 import flash.geom.Rectangle;
 import flash.text.TextFormat;

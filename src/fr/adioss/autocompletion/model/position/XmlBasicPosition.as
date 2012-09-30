@@ -5,7 +5,7 @@
  * Time: 03:34
  *
  */
-package autocompletion.model.position {
+package fr.adioss.autocompletion.model.position {
 public class XmlBasicPosition extends XmlPosition {
     public var presetChars:String;
 

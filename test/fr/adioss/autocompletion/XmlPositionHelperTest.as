@@ -5,15 +5,15 @@
  * Time: 08:13
  *
  */
-package autocompletion {
-import autocompletion.model.position.XmlAttributeEditionPosition;
-import autocompletion.model.position.XmlAttributePosition;
-import autocompletion.model.position.XmlBeginTagPosition;
-import autocompletion.model.position.XmlContentPosition;
-import autocompletion.model.position.XmlEndTagPosition;
-import autocompletion.model.position.XmlPosition;
-
+package fr.adioss.autocompletion {
 import flexunit.framework.*;
+
+import fr.adioss.autocompletion.model.position.XmlAttributeEditionPosition;
+import fr.adioss.autocompletion.model.position.XmlAttributePosition;
+import fr.adioss.autocompletion.model.position.XmlBeginTagPosition;
+import fr.adioss.autocompletion.model.position.XmlContentPosition;
+import fr.adioss.autocompletion.model.position.XmlEndTagPosition;
+import fr.adioss.autocompletion.model.position.XmlPosition;
 
 import mx.collections.ArrayCollection;
 import mx.controls.TextArea;

@@ -5,7 +5,7 @@
  * Time: 20:19
  *
  */
-package autocompletion.model.position {
+package fr.adioss.autocompletion.model.position {
 import mx.collections.ArrayCollection;
 
 public class XmlAttributePosition extends XmlBasicPosition {

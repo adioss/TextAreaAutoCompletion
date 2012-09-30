@@ -1,11 +1,11 @@
-package autocompletion {
-import autocompletion.model.position.XmlAttributeEditionPosition;
-import autocompletion.model.position.XmlAttributePosition;
-import autocompletion.model.position.XmlBeginTagPosition;
-import autocompletion.model.schema.SchemaDescription;
-import autocompletion.model.schema.SchemaInformation;
-
+package fr.adioss.autocompletion {
 import flash.utils.Dictionary;
+
+import fr.adioss.autocompletion.model.position.XmlAttributeEditionPosition;
+import fr.adioss.autocompletion.model.position.XmlAttributePosition;
+import fr.adioss.autocompletion.model.position.XmlBeginTagPosition;
+import fr.adioss.autocompletion.model.schema.SchemaDescription;
+import fr.adioss.autocompletion.model.schema.SchemaInformation;
 
 import mx.collections.ArrayCollection;
 

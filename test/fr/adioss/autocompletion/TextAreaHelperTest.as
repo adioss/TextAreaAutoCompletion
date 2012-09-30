@@ -4,7 +4,7 @@
  * Date: 10/08/12
  * Time: 01:24
  */
-package autocompletion {
+package fr.adioss.autocompletion {
 import flexunit.framework.Assert;
 
 public class TextAreaHelperTest {

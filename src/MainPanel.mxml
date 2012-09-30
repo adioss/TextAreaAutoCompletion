@@ -3,11 +3,11 @@
           borderStyle="solid">
     <mx:Script>
         <![CDATA[
-        import autocompletion.*;
+        import fr.adioss.autocompletion.*;
 
         import mx.collections.ArrayCollection;
 
-        [Embed(source="/assets/camel-spring-2.9.1.xml")]
+        [Embed(source="/../test/fr/adioss/autocompletion/assets/camel-spring-2.9.1.xml")]
         private var CAMEL_SPRING_XSD:Class;
         private static const FILE_TYPES:Array = [new FileFilter("Schema File", "*.xsd;*.xml")];
 

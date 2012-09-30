@@ -4,20 +4,20 @@
  * Time: 00:38
  *
  */
-package autocompletion {
-import autocompletion.model.position.XmlAttributeEditionPosition;
-import autocompletion.model.position.XmlAttributePosition;
-import autocompletion.model.position.XmlBeginTagPosition;
-
+package fr.adioss.autocompletion {
 import flexunit.framework.Assert;
+
+import fr.adioss.autocompletion.model.position.XmlAttributeEditionPosition;
+import fr.adioss.autocompletion.model.position.XmlAttributePosition;
+import fr.adioss.autocompletion.model.position.XmlBeginTagPosition;
 
 import mx.collections.ArrayCollection;
 
 public class SchemaParserTest {
-    [Embed(source="/assets/camel-spring-2.9.1.xml")]
+    [Embed(source="/fr/adioss/autocompletion/assets/camel-spring-2.9.1.xml")]
     private var CAMEL_SPRING_XSD:Class;
 
-    [Embed(source="/assets/simple.xml")]
+    [Embed(source="/fr/adioss/autocompletion/assets/simple.xml")]
     private var SIMPLE_XSD:Class;
 
     private var m_schemaParser:SchemaParser;

@@ -4,7 +4,7 @@
  * Date: 02/09/12
  * Time: 21:55
  */
-package autocompletion.model.schema {
+package fr.adioss.autocompletion.model.schema {
 import flash.utils.Dictionary;
 
 public class SchemaDescription {

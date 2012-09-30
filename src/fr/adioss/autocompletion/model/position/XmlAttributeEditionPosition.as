@@ -5,7 +5,7 @@
  * Time: 20:19
  *
  */
-package autocompletion.model.position {
+package fr.adioss.autocompletion.model.position {
 public class XmlAttributeEditionPosition extends XmlAttributePosition {
     public var currentAttributeName:String;
 

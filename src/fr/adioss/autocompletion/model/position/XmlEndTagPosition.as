@@ -5,7 +5,7 @@
  * Time: 20:19
  *
  */
-package autocompletion.model.position {
+package fr.adioss.autocompletion.model.position {
 public class XmlEndTagPosition extends XmlBasicPosition {
     public var associatedTagName:String;
 
