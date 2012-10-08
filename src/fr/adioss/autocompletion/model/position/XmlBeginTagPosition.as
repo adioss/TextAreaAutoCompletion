@@ -6,16 +6,16 @@
  *
  */
 package fr.adioss.autocompletion.model.position {
-public class XmlBeginTagPosition extends XmlBasicPosition {
-    public var parentTagName:String;
+    public class XmlBeginTagPosition extends XmlBasicPosition {
+        public var parentTagName:String;
 
-    public function XmlBeginTagPosition(parentTagName:String, presetChars:String) {
-        this.parentTagName = parentTagName;
-        super(presetChars);
-    }
+        public function XmlBeginTagPosition(parentTagName:String, presetChars:String) {
+            this.parentTagName = parentTagName;
+            super(presetChars);
+        }
 
-    public override function toString():String {
-        return super.toString() + "{parentTagName=" + String(parentTagName) + "}";
+        public override function toString():String {
+            return super.toString() + "{parentTagName=" + String(parentTagName) + "}";
+        }
     }
-}
 }

@@ -5,10 +5,10 @@
  * Time: 01:17
  */
 package fr.adioss.autocompletion.model.schema {
-public class SchemaInformation {
-    public static const STANDARD_URI:String = "http://www.w3.org/2001/XMLSchema";
-    public var targetNamespace:String;
-    public var standardNameSpace:Namespace;
-    public var schemaNameSpace:Namespace;
-}
+    public class SchemaInformation {
+        public static const STANDARD_URI:String = "http://www.w3.org/2001/XMLSchema";
+        public var targetNamespace:String;
+        public var standardNameSpace:Namespace;
+        public var schemaNameSpace:Namespace;
+    }
 }

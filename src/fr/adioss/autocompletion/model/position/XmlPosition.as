@@ -6,12 +6,12 @@
  *
  */
 package fr.adioss.autocompletion.model.position {
-public class XmlPosition {
-    public function XmlPosition() {
-    }
+    public class XmlPosition {
+        public function XmlPosition() {
+        }
 
-    public function toString():String {
-        return "XmlPosition";
+        public function toString():String {
+            return "XmlPosition";
+        }
     }
-}
 }

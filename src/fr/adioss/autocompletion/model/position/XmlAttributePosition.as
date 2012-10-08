@@ -6,22 +6,20 @@
  *
  */
 package fr.adioss.autocompletion.model.position {
-import mx.collections.ArrayCollection;
+    import mx.collections.ArrayCollection;
 
-public class XmlAttributePosition extends XmlBasicPosition {
-    public var currentTagName:String;
-    public var alreadyUsedAttributes:ArrayCollection;
+    public class XmlAttributePosition extends XmlBasicPosition {
+        public var currentTagName:String;
+        public var alreadyUsedAttributes:ArrayCollection;
 
-    public function XmlAttributePosition(currentTagName:String, presetChars:String,
-                                         alreadyUsedAttributes:ArrayCollection = null) {
-        this.currentTagName = currentTagName;
-        this.alreadyUsedAttributes = alreadyUsedAttributes;
-        super(presetChars);
+        public function XmlAttributePosition(currentTagName:String, presetChars:String, alreadyUsedAttributes:ArrayCollection = null) {
+            this.currentTagName = currentTagName;
+            this.alreadyUsedAttributes = alreadyUsedAttributes;
+            super(presetChars);
+        }
+
+        public override function toString():String {
+            return super.toString() + "{currentTagName=" + String(currentTagName) + ",alreadyUsedAttributes=" + String(alreadyUsedAttributes) + "}";
+        }
     }
-
-    public override function toString():String {
-        return super.toString() + "{currentTagName=" + String(currentTagName)
-                + ",alreadyUsedAttributes=" + String(alreadyUsedAttributes) + "}";
-    }
-}
 }

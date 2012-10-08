@@ -123,7 +123,7 @@ package fr.adioss.autocompletion {
                     clauseCurrentTag(lastTypedChar, XmlAttributePosition(m_currentXmlPosition).currentTagName);
                 } else if (m_currentXmlPosition is XmlBeginTagPosition) {
                     var position:XmlBeginTagPosition = XmlBeginTagPosition(m_currentXmlPosition);
-                    var tags:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position);
+                    var tags:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position, null);
                     if (tags != null && tags.length == 1 && tags.getItemAt(0) == position.presetChars) {
                         clauseCurrentTag(lastTypedChar, position.presetChars);
                     }
@@ -140,7 +140,7 @@ package fr.adioss.autocompletion {
             var havePreset:Boolean = presetChars != null && presetChars != "";
             var tagCompletions:ArrayCollection;
             if (m_currentXmlPosition is XmlBeginTagPosition) {
-                tagCompletions = m_schemaParser.retrieveTagCompletionInformation(XmlBeginTagPosition(m_currentXmlPosition));
+                tagCompletions = m_schemaParser.retrieveTagCompletionInformation(XmlBeginTagPosition(m_currentXmlPosition), null);
             } else if (m_currentXmlPosition is XmlAttributeEditionPosition) {
                 tagCompletions = m_schemaParser.retrieveAttributeEditionCompletionInformation(XmlAttributeEditionPosition(m_currentXmlPosition));
             } else if (m_currentXmlPosition is XmlAttributePosition) {

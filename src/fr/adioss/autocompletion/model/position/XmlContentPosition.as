@@ -6,8 +6,8 @@
  *
  */
 package fr.adioss.autocompletion.model.position {
-public class XmlContentPosition extends XmlPosition {
-    public function XmlContentPosition() {
+    public class XmlContentPosition extends XmlPosition {
+        public function XmlContentPosition() {
+        }
     }
-}
 }
