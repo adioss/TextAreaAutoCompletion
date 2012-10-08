@@ -89,7 +89,12 @@ package fr.adioss.autocompletion {
                     completeEndTag();
                 }
             } else {
-                m_lastTypedCharBeforeKeyDown = String.fromCharCode(event.charCode);
+                // event.charCode < 32 and 127, not corresponding to "real" chars (like DEL etc...)
+                if (event.charCode < 32 || event.charCode == 127) {
+                    m_lastTypedCharBeforeKeyDown = "";
+                } else {
+                    m_lastTypedCharBeforeKeyDown = String.fromCharCode(event.charCode);
+                }
             }
         }
 
