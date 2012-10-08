@@ -1,3 +1,9 @@
+/**
+ *
+ * User: A.PAILHES
+ * Date: 01/08/12
+ * Time: 00:21
+ */
 package fr.adioss.autocompletion {
     import flash.utils.Dictionary;
 
