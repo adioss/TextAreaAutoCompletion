@@ -217,10 +217,11 @@ package fr.adioss.autocompletion {
             if (m_currentTypedWord.length > 0) {
                 if (keyCodeHorizontalNavigation == Keyboard.LEFT) {
                     m_currentTypedWord = m_currentTypedWord.substr(0, m_currentTypedWord.length - 1);
+                    refreshListAndPosition(m_endPosition > 0 ? m_endPosition - 1 : m_endPosition);
                 } else {
                     m_currentTypedWord += m_textArea.text.substr(m_endPosition, 1);
+                    refreshListAndPosition(m_endPosition + 1);
                 }
-                refreshListAndPosition(m_endPosition > 0 ? m_endPosition - 1 : m_endPosition);
             } else {
                 removeAutoCompleteCanvas();
             }
