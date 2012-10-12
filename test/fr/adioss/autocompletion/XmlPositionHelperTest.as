@@ -319,6 +319,14 @@ package fr.adioss.autocompletion {
             Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
             currentPosition = XmlEndTagPosition(currentPositionTested);
             Assert.assertNull(currentPosition.associatedTagName);
+
+            m_textArea.text = "<route><description></description></";
+            m_textArea.selectionBeginIndex = m_textArea.text.length;
+            currentPositionTested = m_xmlPositionHelper.getCurrentXmlPosition();
+            Assert.assertTrue(currentPositionTested is XmlEndTagPosition);
+            currentPosition = XmlEndTagPosition(currentPositionTested);
+            Assert.assertNotNull(currentPosition.associatedTagName);
+            Assert.assertEquals(currentPosition.associatedTagName, "route");
         }
     }
 }

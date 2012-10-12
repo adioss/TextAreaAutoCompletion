@@ -92,7 +92,7 @@ package fr.adioss.autocompletion {
 
         }
 
-        private function minus(childWithNoParentTags:ArrayCollection, completePossibleChildTags:ArrayCollection):ArrayCollection {
+        private static function minus(childWithNoParentTags:ArrayCollection, completePossibleChildTags:ArrayCollection):ArrayCollection {
             var result:ArrayCollection = new ArrayCollection();
             for each (var simpleTypeName:String in childWithNoParentTags) {
                 if (!completePossibleChildTags.contains(simpleTypeName)) {
@@ -163,7 +163,8 @@ package fr.adioss.autocompletion {
             var presetChars:String = position.presetChars;
             fillCurrentSchemaDescription(presetChars, schemaDescription);
             if (m_currentSchemaDescription != null) {
-                if (parentTagName != null && parentTagName != "" && isParentTagNameCorrespondToSearch(parentTagName)) {
+                //if (parentTagName != null && parentTagName != "" && isParentTagNameCorrespondToSearch(parentTagName)) {
+                if (parentTagName != null && parentTagName != "") {
                     if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
                         // find prefix on parent tag
                         if (parentTagName.indexOf(m_currentSchemaDescription.prefix) != -1) {
@@ -373,10 +374,7 @@ package fr.adioss.autocompletion {
         }
 
         private function isParentTagNameCorrespondToSearch(parentTagName:String):Boolean {
-            if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX && parentTagName.indexOf(m_currentSchemaDescription.prefix) != 0) {
-                return false;
-            }
-            return true;
+            return !(m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX && parentTagName.indexOf(m_currentSchemaDescription.prefix) != 0);
         }
 
         //endregion

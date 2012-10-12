@@ -199,20 +199,27 @@ package fr.adioss.autocompletion {
             var contentLength:int = content.length;
             var processedChar:String;
             var processedTag:String = "";
+            var processedEndTagParsed:String = "";
             var collectTag:Boolean = true;
             var beginningQuoteParsing:Boolean = false;
             var beginningAttributeParsing:Boolean = false;
             var spaceDetected:Boolean = false;
             var foundPrefix:Boolean = false;
+            var isPresetCharDeleted:Boolean = false;
+
             while (contentLength-- > 0) {
                 processedChar = content.charAt(contentLength);
                 if (processedChar == "<" && !beginningQuoteParsing) {
                     if (contentLength < content.length) {
-                        if (content.charAt(contentLength + 1) != "/") {
+                        if (content.charAt(contentLength + 1) != "/" && processedEndTagParsed == "") {
                             var formatted:String = format(processedTag);
                             if (formatted.search(prefix) != -1) {
                                 return formatted;
                             }
+                        }
+                        if (processedTag == processedEndTagParsed) {
+                            processedEndTagParsed = "";
+                            processedTag = "";
                         }
                     }
                 } else if (processedChar == ">" && !beginningQuoteParsing) {
@@ -230,6 +237,12 @@ package fr.adioss.autocompletion {
                         return null;
                     } else {
                         foundPrefix = true
+                    }
+                    processedEndTagParsed = processedEndTagParsed == "" ? processedTag : processedEndTagParsed == processedTag ? "" : processedEndTagParsed;
+                    if (!isPresetCharDeleted) {
+                        // delete preset chars
+                        isPresetCharDeleted = !isPresetCharDeleted;
+                        processedEndTagParsed = ""
                     }
                     processedTag = "";
                     collectTag = false;

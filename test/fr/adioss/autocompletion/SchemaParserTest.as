@@ -108,7 +108,7 @@ package fr.adioss.autocompletion {
         }
 
         [Test]
-        public function shouldRetrieveFirstElementWithoutPatent():void {
+        public function shouldRetrieveFirstElementWithoutParent():void {
             var position:XmlBeginTagPosition = new XmlBeginTagPosition("", "xs1:");
             var result:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position, null);
             Assert.assertNotNull(result);
