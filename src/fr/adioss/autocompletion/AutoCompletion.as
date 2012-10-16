@@ -107,7 +107,6 @@ package fr.adioss.autocompletion {
         private function onTextAreaWithoutCompletionKeyDown(event:KeyboardEvent):void {
             m_keyPressedBeforeKeyDown = isUnicodeUsableChar(event.charCode) ? String.fromCharCode(event.charCode) : "";
             if (event.ctrlKey && event.keyCode == Keyboard.SPACE) {
-                m_textArea.callLater(deleteCharBehindCursor);
                 // get cursor position in xml
                 m_currentXmlPosition = m_xmlPositionHelper.getCurrentXmlPosition();
                 if (m_currentXmlPosition is XmlBeginTagPosition || m_currentXmlPosition is XmlAttributePosition || m_currentXmlPosition
@@ -123,6 +122,10 @@ package fr.adioss.autocompletion {
             var lastTypedChar:String = getCharBeforeCursor();
             if (m_keyPressedBeforeKeyDown != "" && lastTypedChar != null && lastTypedChar != "" && (isSlashChar(lastTypedChar)
                     || isGreaterChar(lastTypedChar))) {
+                //if (m_keyPressedBeforeKeyDown == " ") {
+                //    // delete created space
+                //    m_textArea.callLater(deleteCharBehindCursor);
+                //}
                 m_currentXmlPosition = m_xmlPositionHelper.getCurrentXmlPosition(-1);
                 if (m_currentXmlPosition is XmlAttributePosition) {
                     clauseCurrentTag(lastTypedChar, XmlAttributePosition(m_currentXmlPosition).currentTagName);
@@ -169,10 +172,7 @@ package fr.adioss.autocompletion {
             var charCode:uint = event.charCode;
             var keyCode:uint = event.keyCode;
             m_keyPressedBeforeKeyDown = isUnicodeUsableChar(charCode) ? String.fromCharCode(charCode) : "";
-            if (event.ctrlKey && event.keyCode == Keyboard.SPACE) {
-                // delete created space
-                m_textArea.callLater(deleteCharBehindCursor);
-            } else if (charCode == Keyboard.ENTER) {
+            if (charCode == Keyboard.ENTER) {
                 appendAutoCompletionItemSelection();
             } else if (charCode == Keyboard.ESCAPE) {
                 removeAutoCompleteCanvas();

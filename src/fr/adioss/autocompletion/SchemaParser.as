@@ -163,8 +163,7 @@ package fr.adioss.autocompletion {
             var presetChars:String = position.presetChars;
             fillCurrentSchemaDescription(presetChars, schemaDescription);
             if (m_currentSchemaDescription != null) {
-                //if (parentTagName != null && parentTagName != "" && isParentTagNameCorrespondToSearch(parentTagName)) {
-                if (parentTagName != null && parentTagName != "") {
+                if (parentTagName != null && parentTagName != "" && isParentTagNameCorrespondToSearch(parentTagName)) {
                     if (m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX) {
                         // find prefix on parent tag
                         if (parentTagName.indexOf(m_currentSchemaDescription.prefix) != -1) {
