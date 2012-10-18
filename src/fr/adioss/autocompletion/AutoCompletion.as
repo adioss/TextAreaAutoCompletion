@@ -58,12 +58,15 @@ package fr.adioss.autocompletion {
         private var m_autoCompleteCanvas:Canvas = new Canvas();
         private var m_currentTypedWord:String;
         private var m_keyPressedBeforeKeyDown:String;
+        private var m_caretPositionBeforeKeyDown:int;
+        private var m_isCtrlSpacePressed:Boolean;
 
         public function AutoCompletion(textArea:TextArea, schemas:ArrayCollection) {
             if (schemas != null && schemas.length > 0) {
                 m_textArea = textArea;
                 m_xmlPositionHelper = new XmlPositionHelper(m_textArea);
                 m_schemaParser = new SchemaParser(schemas);
+                m_textArea.addEventListener(Event.CHANGE, onTextAreaChange);
                 addTextAreaWithoutCompletionEventListener();
                 m_keyPressedBeforeKeyDown = "";
             }
@@ -72,17 +75,16 @@ package fr.adioss.autocompletion {
         public function stopCompletion():void {
             if (m_textArea != null) {
                 removeTextAreaWithoutCompletionEventListener();
+                m_textArea.removeEventListener(Event.CHANGE, onTextAreaChange);
             }
         }
 
         private function addTextAreaWithoutCompletionEventListener():void {
             m_textArea.addEventListener(KeyboardEvent.KEY_DOWN, onTextAreaWithoutCompletionKeyDown);
-            m_textArea.addEventListener(Event.CHANGE, onTextAreaWithoutCompletionChange);
         }
 
         private function removeTextAreaWithoutCompletionEventListener():void {
             m_textArea.removeEventListener(KeyboardEvent.KEY_DOWN, onTextAreaWithoutCompletionKeyDown);
-            m_textArea.removeEventListener(Event.CHANGE, onTextAreaWithoutCompletionChange);
         }
 
         //region Events
@@ -105,8 +107,11 @@ package fr.adioss.autocompletion {
         }
 
         private function onTextAreaWithoutCompletionKeyDown(event:KeyboardEvent):void {
+            m_caretPositionBeforeKeyDown = getCursorPosition();
+            m_isCtrlSpacePressed = false;
             m_keyPressedBeforeKeyDown = isUnicodeUsableChar(event.charCode) ? String.fromCharCode(event.charCode) : "";
             if (event.ctrlKey && event.keyCode == Keyboard.SPACE) {
+                m_isCtrlSpacePressed = true;
                 // get cursor position in xml
                 m_currentXmlPosition = m_xmlPositionHelper.getCurrentXmlPosition();
                 if (m_currentXmlPosition is XmlBeginTagPosition || m_currentXmlPosition is XmlAttributePosition || m_currentXmlPosition
@@ -118,14 +123,14 @@ package fr.adioss.autocompletion {
             }
         }
 
-        private function onTextAreaWithoutCompletionChange(event:Event):void {
+        private function onTextAreaChange(event:Event):void {
             var lastTypedChar:String = getCharBeforeCursor();
+            if (m_isCtrlSpacePressed && m_caretPositionBeforeKeyDown == getCursorPosition() - 1 && lastTypedChar == " ") {
+                // delete created space
+                deleteCharBehindCursor();
+            }
             if (m_keyPressedBeforeKeyDown != "" && lastTypedChar != null && lastTypedChar != "" && (isSlashChar(lastTypedChar)
                     || isGreaterChar(lastTypedChar))) {
-                //if (m_keyPressedBeforeKeyDown == " ") {
-                //    // delete created space
-                //    m_textArea.callLater(deleteCharBehindCursor);
-                //}
                 m_currentXmlPosition = m_xmlPositionHelper.getCurrentXmlPosition(-1);
                 if (m_currentXmlPosition is XmlAttributePosition) {
                     clauseCurrentTag(lastTypedChar, XmlAttributePosition(m_currentXmlPosition).currentTagName);
@@ -171,8 +176,12 @@ package fr.adioss.autocompletion {
         private function manageKeyPressedOnTextArea(event:KeyboardEvent):void {
             var charCode:uint = event.charCode;
             var keyCode:uint = event.keyCode;
+            m_isCtrlSpacePressed = false;
+            m_caretPositionBeforeKeyDown = getCursorPosition();
             m_keyPressedBeforeKeyDown = isUnicodeUsableChar(charCode) ? String.fromCharCode(charCode) : "";
-            if (charCode == Keyboard.ENTER) {
+            if (event.ctrlKey && event.keyCode == Keyboard.SPACE) {
+                m_isCtrlSpacePressed = true;
+            } else if (charCode == Keyboard.ENTER) {
                 appendAutoCompletionItemSelection();
             } else if (charCode == Keyboard.ESCAPE) {
                 removeAutoCompleteCanvas();
@@ -435,10 +444,14 @@ package fr.adioss.autocompletion {
         }
 
         private function deleteCharBehindCursor():void {
-            var selectionBeginIndex:int = m_textArea.selectionBeginIndex;
+            var selectionBeginIndex:int = getCursorPosition();
             m_textArea.text = m_textArea.text.slice(0, selectionBeginIndex - 1) + m_textArea.text.slice(selectionBeginIndex, m_textArea.text.length);
             m_textArea.setSelection(selectionBeginIndex - 1, selectionBeginIndex - 1);
             m_textArea.setFocus();
+        }
+
+        private function getCursorPosition():int {
+            return m_textArea.getTextField().caretIndex;
         }
 
         private static function isUnicodeUsableChar(charCode:uint):Boolean {
