@@ -10,7 +10,7 @@ Features:
 * multiple schema parsing
 
 ## Demo
-You can see a running version at [http://adioss.fr/](http://adioss.fr/)
+You can see a running version at [TextAreaAutoCompletion.swf](http://adioss.fr/wp-content/uploads/2012/10/TextAreaAutoCompletion.swf)
 
 ## Usage
 
