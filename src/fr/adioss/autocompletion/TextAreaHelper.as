@@ -28,10 +28,22 @@ package fr.adioss.autocompletion {
         public function TextAreaHelper() {
         }
 
+        /**
+         * Get text area current global cursor position
+         * @param textArea text area component
+         * @param caretOffset if preset char, subtract preset char length
+         * @return current x/y positions
+         */
         public static function getTextAreaCurrentGlobalCursorPosition(textArea:TextArea, caretOffset:int = 0):Point {
             return textArea.getTextField().localToGlobal(getTextAreaCurrentCursorPosition(textArea, caretOffset));
         }
 
+        /**
+         * Get text area current cursor position
+         * @param textArea text area component
+         * @param caretOffset if preset char, subtract preset char length
+         * @return current x/y positions
+         */
         private static function getTextAreaCurrentCursorPosition(textArea:TextArea, caretOffset:int):Point {
             var textField:IUITextField = textArea.getTextField();
             var text:String = textArea.text;

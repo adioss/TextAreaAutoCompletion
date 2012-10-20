@@ -264,21 +264,21 @@ package fr.adioss.autocompletion {
             var xmlAttributePositionTested:XmlAttributePosition;
             content = " message=\"me<s\" loggingLevel=\"loglevel\" ";
             xmlAttributePosition = new XmlAttributePosition("log", "", new ArrayCollection());
-            xmlAttributePositionTested = XmlPositionHelper.completeWithNextUsedAttributes(content, 0, xmlAttributePosition);
+            xmlAttributePositionTested = XmlPositionHelper.completeWithPossibleAttribute(content, 0, xmlAttributePosition);
             Assert.assertNotNull(xmlAttributePositionTested.alreadyUsedAttributes);
             Assert.assertTrue(xmlAttributePositionTested.alreadyUsedAttributes.contains("message"));
             Assert.assertTrue(xmlAttributePositionTested.alreadyUsedAttributes.contains("loggingLevel"));
 
             content = " message=\"mes\"><test loggingLevel=\"loglevel\" ";
             xmlAttributePosition = new XmlAttributePosition("log", "", new ArrayCollection());
-            xmlAttributePositionTested = XmlPositionHelper.completeWithNextUsedAttributes(content, 0, xmlAttributePosition);
+            xmlAttributePositionTested = XmlPositionHelper.completeWithPossibleAttribute(content, 0, xmlAttributePosition);
             Assert.assertNotNull(xmlAttributePositionTested.alreadyUsedAttributes);
             Assert.assertEquals(xmlAttributePositionTested.alreadyUsedAttributes.length, 1);
             Assert.assertTrue(xmlAttributePositionTested.alreadyUsedAttributes.contains("message"));
 
             content = "<routes><route><multicast streaming=\"true\" timeout=\"\"  id=\"oik\"  shareUnitOfWork=\"\"></multicast>";
             xmlAttributePosition = new XmlAttributePosition("multicast", "", new ArrayCollection());
-            xmlAttributePositionTested = XmlPositionHelper.completeWithNextUsedAttributes(content, 54, xmlAttributePosition);
+            xmlAttributePositionTested = XmlPositionHelper.completeWithPossibleAttribute(content, 54, xmlAttributePosition);
             Assert.assertNotNull(xmlAttributePositionTested.alreadyUsedAttributes);
             Assert.assertEquals(xmlAttributePositionTested.alreadyUsedAttributes.length, 2);
             Assert.assertTrue(xmlAttributePositionTested.alreadyUsedAttributes.contains("id"));

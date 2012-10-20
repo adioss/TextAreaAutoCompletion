@@ -205,9 +205,12 @@ package fr.adioss.autocompletion {
             }
         }
 
-        private function refreshAfterHorizontalNavigation(keyCodeHorizontalNavigation:uint):void {
+        /**
+         * Navigation(right/left key pressed) when autocompletion list is open
+         */
+        private function refreshAfterHorizontalNavigation(keyCode:uint):void {
             if (m_currentTypedWord.length > 0) {
-                if (keyCodeHorizontalNavigation == Keyboard.LEFT) {
+                if (keyCode == Keyboard.LEFT) {
                     m_currentTypedWord = m_currentTypedWord.substr(0, m_currentTypedWord.length - 1);
                 } else {
                     m_currentTypedWord += m_textArea.text.substr(m_endPosition, 1);
@@ -218,6 +221,9 @@ package fr.adioss.autocompletion {
             }
         }
 
+        /**
+         * Navigation(up/down key pressed) when autocompletion list is open
+         */
         private function refreshAfterVerticalNavigation(keyCode:uint):void {
             var offsetDirection:int;
             if (keyCode == Keyboard.UP) {
@@ -230,14 +236,16 @@ package fr.adioss.autocompletion {
             setFocusToEndPosition();
         }
 
+        /**
+         * Complete, in cursor position, text with selected autocompletion item
+         */
         private function appendTextToTextArea(textToAppend:String):void {
             var textToTransform:String = m_textArea.text;
             var completionOffset:int = 0;
             if (m_currentXmlPosition is XmlBeginTagPosition) {
                 var firstAttribute:String = retrieveFirstAttributeOfBeginTag(textToAppend);
                 if (firstAttribute != null && firstAttribute.length > 0) {
-                    textToAppend += " ";
-                    textToAppend += firstAttribute + "=\"\"";
+                    textToAppend += " " + firstAttribute + "=\"\"";
                     completionOffset = -1;
 
                 }
@@ -251,6 +259,11 @@ package fr.adioss.autocompletion {
             m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
         }
 
+        /**
+         * clause current tag.
+         * ex: <test => <test/> if "/" key pressed
+         *     <test => <test></test> if ">" key pressed
+         */
         private function clauseCurrentTag(currentTypedChar:String, tagCompletion:String):void {
             var content:String = m_textArea.text;
             var currentPosition:int = m_textArea.selectionBeginIndex;
@@ -266,6 +279,10 @@ package fr.adioss.autocompletion {
             m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
         }
 
+        /**
+         * clause end tag.
+         * ex: <test></te => <test></test> on ctrl+space
+         */
         private function completeEndTag():void {
             var xmlEndTagPosition:XmlEndTagPosition = XmlEndTagPosition(m_currentXmlPosition);
             var content:String = m_textArea.text;
@@ -290,12 +307,16 @@ package fr.adioss.autocompletion {
             m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
         }
 
+        /**
+         * retrieve first possible attribute for the current tag. Return first attribute with use="required" as attribute
+         * @param beginTagName tag name
+         * @return first possible attribute of current tag
+         */
         private function retrieveFirstAttributeOfBeginTag(beginTagName:String):String {
             var firstAttribute:String = null;
             if (beginTagName != null && beginTagName.length > 0) {
-                var retrieveAttributeCompletionInformation:ArrayCollection = m_schemaParser.retrieveAttributeCompletionInformation(new XmlAttributePosition(beginTagName,
-                                                                                                                                                            null),
-                                                                                                                                   filterByRequiredUse);
+                var retrieveAttributeCompletionInformation:ArrayCollection = m_schemaParser.retrieveAttributeCompletionInformation(//
+                        new XmlAttributePosition(beginTagName, null), filterByRequiredUse);
                 if (retrieveAttributeCompletionInformation != null && retrieveAttributeCompletionInformation.length > 0) {
                     firstAttribute = String(retrieveAttributeCompletionInformation.getItemAt(0));
                 }
@@ -303,11 +324,20 @@ package fr.adioss.autocompletion {
             return firstAttribute;
         }
 
+        /**
+         * filter function to find attribute type with use="required" as attribute
+         * @param complexType current tag description
+         * @return
+         */
         private static function filterByRequiredUse(complexType:XML):Boolean {
             var used:String = String(complexType.attribute("use"));
             return used == "required";
         }
 
+        /**
+         * append char at current cursor position
+         * @param charToAppend char to append
+         */
         private function appendCharToTextArea(charToAppend:String):void {
             var textToTransform:String = m_textArea.text;
             var result:String = textToTransform.substring(0, m_endPosition - 1) + charToAppend + textToTransform.substr(m_endPosition - 1,
@@ -315,8 +345,12 @@ package fr.adioss.autocompletion {
             m_textArea.callLater(setTextAreaCallBack, new Array(result));
         }
 
-        private function setTextAreaCallBack(selectedText:String):void {
-            m_textArea.text = selectedText;
+        /**
+         * replace text of text area
+         * @param textToSet
+         */
+        private function setTextAreaCallBack(textToSet:String):void {
+            m_textArea.text = textToSet;
             setFocusToEndPosition();
         }
 
@@ -337,6 +371,11 @@ package fr.adioss.autocompletion {
             m_textArea.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPressedWhenCanvasIsShown);
         }
 
+        /**
+         * initialize auto completion list
+         * @param wordList data provider of autocompletion list
+         * @param presetChar already typed chars
+         */
         private function initializeAutoCompleteList(wordList:Array, presetChar:String):void {
             var havePreset:Boolean = presetChar != null && presetChar != "";
             m_autoCompleteList.setStyle("rollOverColor", AUTOCOMPLETION_ROLLOVER_COLOR);
@@ -352,6 +391,10 @@ package fr.adioss.autocompletion {
             m_autoCompleteList.rowCount = wordList.length > AUTOCOMPLETION_MAX_ROW_COUNT ? AUTOCOMPLETION_MAX_ROW_COUNT : wordList.length;
         }
 
+        /**
+         * show auto completion list in canvas
+         * @param currentPosition where to place auto completion list canvas
+         */
         private function showAutoCompleteCanvas(currentPosition:Point):void {
             var previousCharBounds:Rectangle = TextAreaHelper.getPreviousCharBounds(m_textArea);
             m_autoCompleteCanvas = new Canvas();
@@ -379,6 +422,9 @@ package fr.adioss.autocompletion {
             m_currentTypedWord = "";
         }
 
+        /**
+         * update auto completion list data provider
+         */
         private function updateAutoCompleteList():void {
             var newFilteredWordList:Array = filterWordListWithCurrentTypedWord();
             if (newFilteredWordList.length == 0) {
@@ -391,6 +437,9 @@ package fr.adioss.autocompletion {
             m_autoCompleteList.selectedIndex = 0;
         }
 
+        /**
+         * filter auto completion list data provider based on already typed chars by user
+         */
         private function filterWordListWithCurrentTypedWord():Array {
             var newFilteredWordList:Array = new Array();
             var lowerCaseItem:String;
@@ -404,6 +453,9 @@ package fr.adioss.autocompletion {
             return newFilteredWordList;
         }
 
+        /**
+         * append to current cursor position the current selected item in auto completion list
+         */
         private function appendAutoCompletionItemSelection():void {
             var selectedText:String = String(m_autoCompleteList.selectedItem);
             appendTextToTextArea(selectedText);
@@ -419,6 +471,7 @@ package fr.adioss.autocompletion {
         //endregion
 
         //region Utils
+
         public function generateHeaderForSchemaDescriptions(rootTagName:String):String {
             if (m_schemaParser) {
                 return m_schemaParser.generateHeaderForSchemaDescriptions(rootTagName);

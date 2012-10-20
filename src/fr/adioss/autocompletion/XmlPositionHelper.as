@@ -43,6 +43,12 @@ package fr.adioss.autocompletion {
             return XmlPositionHelper.retrieveXmlPosition(content, currentPosition);
         }
 
+        /**
+         * retrieve in text xml position => try to complete tag, attribute etc...
+         * @param content current text area content
+         * @param currentPosition current cursor position
+         * @return current xml position (extend XmlPosition)
+         */
         private static function retrieveXmlPosition(content:String, currentPosition:int):XmlPosition {
             var contentToBegin:String = TextAreaHelper.prepareContent(getTextToBegin(content, currentPosition));
             var processedChar:String = "";
@@ -74,7 +80,7 @@ package fr.adioss.autocompletion {
                                     attributeEditionContent != null && attributeEditionContent != "" ? attributeEditionContent : collectedAttributeName),
                                                                                                      alreadyUsedAttributes.length > 0 ? alreadyUsedAttributes :
                                                                                                              null);
-                            return completeWithNextUsedAttributes(content, currentPosition, xmlAttributePosition);
+                            return completeWithPossibleAttribute(content, currentPosition, xmlAttributePosition);
                         } else {
                             return new XmlBeginTagPosition(findParentTagName(contentToBegin), format(collectedAttributeName));
                         }
@@ -118,6 +124,11 @@ package fr.adioss.autocompletion {
             return null;
         }
 
+        /**
+         * find current tag parent tag name
+         * @param content text area content
+         * @return current position parent tag name
+         */
         public static function findParentTagName(content:String):String {
             var contentLength:int = content.length;
             var processedChar:String;
@@ -195,6 +206,12 @@ package fr.adioss.autocompletion {
             return null;
         }
 
+        /**
+         * find current tag name. ex: <test><stuff></stuff></te => find test
+         * @param content current text area content
+         * @param prefix tag prefix (ex: "xs1:"
+         * @return
+         */
         public static function findAssociatedTagName(content:String, prefix:String):String {
             var contentLength:int = content.length;
             var processedChar:String;
@@ -257,8 +274,16 @@ package fr.adioss.autocompletion {
             return null;
         }
 
-        public static function completeWithNextUsedAttributes(content:String, currentPosition:int,
-                                                              xmlAttributePosition:XmlAttributePosition):XmlAttributePosition {
+        /**
+         * Complete with next possible attribute
+         * Previous used attribute from cursor are not proposed
+         * @param content from
+         * @param currentPosition
+         * @param xmlAttributePosition
+         * @return
+         */
+        public static function completeWithPossibleAttribute(content:String, currentPosition:int,
+                                                             xmlAttributePosition:XmlAttributePosition):XmlAttributePosition {
             var contentToEnd:String = TextAreaHelper.prepareContent(getTextToEnd(content, currentPosition));
             var stopCollecting:Boolean = false;
             var processedChar:String;

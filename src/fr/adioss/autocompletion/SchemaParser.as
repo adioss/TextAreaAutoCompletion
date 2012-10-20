@@ -44,6 +44,9 @@ package fr.adioss.autocompletion {
             }
         }
 
+        /**
+         * initialize schema description
+         */
         private function initializeSchema(schema:XML):void {
             var namespaceDeclarations:Array = schema.namespaceDeclarations();
             var schemaDescription:SchemaDescription = new SchemaDescription(schema);
@@ -57,8 +60,8 @@ package fr.adioss.autocompletion {
                 }
             }
             if (schema.hasOwnProperty("@targetNamespace")) {
-                schemaInformation.targetNamespace = schema.attribute("targetNamespace").toXMLString();
                 schemaDescription.schemaInformation = schemaInformation;
+                schemaInformation.targetNamespace = schema.attribute("targetNamespace").toXMLString();
                 schemaDescription.simpleTypes = getSchemaSimpleTypes(schema, schemaInformation.standardNameSpace);
                 schemaDescription.elements = getSchemaElements(schema, schemaInformation.standardNameSpace);
                 schemaDescription.complexTypes = getSchemaComplexTypes(schema, schemaInformation.standardNameSpace);
@@ -71,19 +74,25 @@ package fr.adioss.autocompletion {
                 // looking for parent tag
                 var completePossibleChildTags:ArrayCollection = new ArrayCollection();
                 var childWithNoParentTags:ArrayCollection = new ArrayCollection();
-                for (var elementName:String in schemaDescription.elements) {
-                    if (!childWithNoParentTags.contains(elementName)) {
-                        var tagList:ArrayCollection = retrieveTagCompletionInformation(new XmlBeginTagPosition(elementName, ""), schemaDescription);
-                        if (tagList != null && tagList.length > 0) {
-                            completePossibleChildTags.addAll(tagList);
+                if (schemaDescription.elements != null) {
+                    for (var elementName:String in schemaDescription.elements) {
+                        if (countDictionaryKeys(schemaDescription.elements) == 1) {
                             childWithNoParentTags.addItem(elementName);
-                            childWithNoParentTags = minus(childWithNoParentTags, completePossibleChildTags);
+                            break;
                         }
-                    } else {
-                        childWithNoParentTags.removeItemAt(childWithNoParentTags.getItemIndex(elementName));
+                        if (!childWithNoParentTags.contains(elementName)) {
+                            var tagList:ArrayCollection = retrieveTagCompletionInformation(new XmlBeginTagPosition(elementName, ""), schemaDescription);
+                            if (tagList != null && tagList.length > 0) {
+                                completePossibleChildTags.addAll(tagList);
+                                childWithNoParentTags.addItem(elementName);
+                                childWithNoParentTags = notIntersect(childWithNoParentTags, completePossibleChildTags);
+                            }
+                        } else {
+                            childWithNoParentTags.removeItemAt(childWithNoParentTags.getItemIndex(elementName));
+                        }
                     }
+                    schemaDescription.rootTagNames = childWithNoParentTags;
                 }
-                schemaDescription.rootTagNames = childWithNoParentTags;
                 m_schemaDescriptions[prefix] = schemaDescription;
 
             } else {
@@ -92,57 +101,10 @@ package fr.adioss.autocompletion {
 
         }
 
-        private static function minus(childWithNoParentTags:ArrayCollection, completePossibleChildTags:ArrayCollection):ArrayCollection {
-            var result:ArrayCollection = new ArrayCollection();
-            for each (var simpleTypeName:String in childWithNoParentTags) {
-                if (!completePossibleChildTags.contains(simpleTypeName)) {
-                    result.addItem(simpleTypeName);
-                }
-            }
-
-            return result;
-        }
-
-        private static function getSchemaSimpleTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
-            var result:Dictionary = new Dictionary();
-            var simpleTypes:XMLList = schema.standardNameSpace::simpleType;
-            for each (var simpleType:XML in simpleTypes) {
-                result[String(simpleType.attribute("name"))] = simpleType;
-            }
-            return result;
-        }
-
-        public static function getSchemaElements(schema:XML, standardNameSpace:Namespace):Dictionary {
-            var result:Dictionary = new Dictionary();
-            var elements:XMLList = schema.standardNameSpace::element;
-            for each (var element:XML in elements) {
-                result[String(element.attribute("name"))] = element;
-            }
-            return result;
-        }
-
-        public static function getSchemaComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
-            var result:Dictionary = new Dictionary();
-            var complexTypes:XMLList = schema.standardNameSpace::complexType;
-            for each (var complexType:XML in complexTypes) {
-                var name:String = complexType.attribute("name");
-                result[name] = complexType;
-            }
-            return result;
-        }
-
-        public static function getAbstractComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
-            var result:Dictionary = new Dictionary();
-            var complexTypes:XMLList = schema.standardNameSpace::complexType;
-            for each (var complexType:XML in complexTypes) {
-                if ("@abstract" in complexType && parseBooleanAttribute(complexType, "abstract")) {
-                    var name:String = complexType.attribute("name");
-                    result[name] = complexType;
-                }
-            }
-            return result;
-        }
-
+        /**
+         * get current schema description based on preset char
+         * if ":" is found, extract prefix and found associated schema
+         */
         private function fillCurrentSchemaDescription(content:String, schemaDescription:SchemaDescription):void {
             if (schemaDescription == null) {
                 var index:String = DEFAULT_SCHEMA_INDEX;
@@ -155,9 +117,80 @@ package fr.adioss.autocompletion {
             }
         }
 
+        /**
+         * get simpleType tags from schema
+         * @param schema current schema
+         * @param standardNameSpace
+         * @return collection of simpleType tag
+         */
+        private static function getSchemaSimpleTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+            var result:Dictionary = new Dictionary();
+            var simpleTypes:XMLList = schema.standardNameSpace::simpleType;
+            for each (var simpleType:XML in simpleTypes) {
+                result[String(simpleType.attribute("name"))] = simpleType;
+            }
+            return result;
+        }
+
+        /**
+         * get element tags from schema
+         * @param schema current schema
+         * @param standardNameSpace
+         * @return collection of element tag
+         */
+        public static function getSchemaElements(schema:XML, standardNameSpace:Namespace):Dictionary {
+            var result:Dictionary = new Dictionary();
+            var elements:XMLList = schema.standardNameSpace::element;
+            for each (var element:XML in elements) {
+                result[String(element.attribute("name"))] = element;
+            }
+            return result;
+        }
+
+        /**
+         * get complexType tags from schema
+         * @param schema current schema
+         * @param standardNameSpace
+         * @return collection of complexType tag
+         */
+        public static function getSchemaComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+            var result:Dictionary = new Dictionary();
+            var complexTypes:XMLList = schema.standardNameSpace::complexType;
+            for each (var complexType:XML in complexTypes) {
+                var name:String = complexType.attribute("name");
+                result[name] = complexType;
+            }
+            return result;
+        }
+
+        /**
+         * get complexType tags with abstract="true" attribute from schema
+         * @param schema current schema
+         * @param standardNameSpace
+         * @return collection of complexType tag
+         */
+        public static function getAbstractComplexTypes(schema:XML, standardNameSpace:Namespace):Dictionary {
+            var result:Dictionary = new Dictionary();
+            var complexTypes:XMLList = schema.standardNameSpace::complexType;
+            for each (var complexType:XML in complexTypes) {
+                if ("@abstract" in complexType && parseBooleanAttribute(complexType, "abstract")) {
+                    var name:String = complexType.attribute("name");
+                    result[name] = complexType;
+                }
+            }
+            return result;
+        }
+
         //endregion
 
         //region Content retrieving
+
+        /**
+         * retrieve tag completion information (ex: "<tes" ctrl+space key pressed)
+         * @param position current begin tag description
+         * @param schemaDescription current schema
+         * @return collection of possible tag
+         */
         public function retrieveTagCompletionInformation(position:XmlBeginTagPosition, schemaDescription:SchemaDescription):ArrayCollection {
             var parentTagName:String = position.parentTagName;
             var presetChars:String = position.presetChars;
@@ -182,6 +215,12 @@ package fr.adioss.autocompletion {
             return null;
         }
 
+        /**
+         * retrieve attribute completion information (ex: "<test attr" ctrl+space key pressed)
+         * @param position current attribute description
+         * @param filterFunction if need to filter attribute tag containing specific attribute(ex: attribute tag with use="required" attribute)
+         * @return collection of possible attribute
+         */
         public function retrieveAttributeCompletionInformation(position:XmlAttributePosition, filterFunction:Function = null):ArrayCollection /* of String */ {
             var availableChildren:ArrayCollection;
             fillCurrentSchemaDescription(position.currentTagName, null);
@@ -199,6 +238,11 @@ package fr.adioss.autocompletion {
             return availableChildren;
         }
 
+        /**
+         * retrieve attribute edition completion information (ex: "<test attribute="t" ctrl+space key pressed)
+         * @param position current attribute content description
+         * @return collection of possible attribute content
+         */
         public function retrieveAttributeEditionCompletionInformation(position:XmlAttributeEditionPosition):ArrayCollection /* of String */ {
             fillCurrentSchemaDescription(position.currentTagName, null);
             if (m_currentSchemaDescription != null) {
@@ -238,6 +282,14 @@ package fr.adioss.autocompletion {
         //endregion
 
         //region Tag processing
+        /**
+         * find available children
+         * @param parent parent tag
+         * @param presetChars preset chars
+         * @param type PROCESS_ATTRIBUTE or PROCESS_TAG
+         * @param filterFunction if need to filter attribute tag containing specific attribute(ex: attribute tag with use="required" attribute)
+         * @return available children collection
+         */
         private function findAvailableChildren(parent:String, presetChars:String, type:String, filterFunction:Function = null):ArrayCollection {
             var complexType:XML = findComplexType(parent);
             if (complexType != null && complexType.length() > 0) {
@@ -246,6 +298,11 @@ package fr.adioss.autocompletion {
             return null;
         }
 
+        /**
+         * find complex types
+         * @param parent parent tag
+         * @return retrieved complex type
+         */
         private function findComplexType(parent:String):XML {
             if (m_currentSchemaDescription != null) {
                 var element:XML = m_currentSchemaDescription.elements[parent];
@@ -278,11 +335,18 @@ package fr.adioss.autocompletion {
             return null;
         }
 
+        /**
+         * process complex type tags
+         * @param complexType complex type
+         * @param presetChars  preset char
+         * @param type PROCESS_ATTRIBUTE or PROCESS_TAG
+         * @param filterFunction if need to filter attribute tag containing specific attribute(ex: attribute tag with use="required" attribute)
+         * @return collection of elements(String)
+         */
         private function processComplexType(complexType:XML, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
             if (complexType != null && complexType.length() > 0) {
                 var result:ArrayCollection = new ArrayCollection();
-                var complexTypeChildren:XMLList = complexType.children();
-                for each (var complexTypeChild:XML in complexTypeChildren) {
+                for each (var complexTypeChild:XML in complexType.children()) {
                     processContent(result, complexTypeChild, presetChars, type, filterFunction);
                 }
                 return result;
@@ -290,6 +354,14 @@ package fr.adioss.autocompletion {
             return null;
         }
 
+        /**
+         * process content type tags
+         * @param complexType complex type
+         * @param presetChars  preset char
+         * @param type PROCESS_ATTRIBUTE or PROCESS_TAG
+         * @param filterFunction if need to filter attribute tag containing specific attribute(ex: attribute tag with use="required" attribute)
+         * @return collection of elements(String)
+         */
         private function processContent(result:ArrayCollection, complexType:XML, presetChars:String, type:String, filterFunction:Function):void {
             var complexTypeLocalName:String = complexType.localName();
             if (complexTypeLocalName == "complexContent") {
@@ -301,6 +373,14 @@ package fr.adioss.autocompletion {
             }
         }
 
+        /**
+         * process complexContent type tags
+         * @param complexType complex type
+         * @param presetChars  preset char
+         * @param type PROCESS_ATTRIBUTE or PROCESS_TAG
+         * @param filterFunction if need to filter attribute tag containing specific attribute(ex: attribute tag with use="required" attribute)
+         * @return collection of elements(String)
+         */
         private function processComplexContent(complexType:XML, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
             var result:ArrayCollection = new ArrayCollection();
             var complexContents:XMLList = complexType.children();
@@ -325,6 +405,14 @@ package fr.adioss.autocompletion {
             return result;
         }
 
+        /**
+         * process extension type tags
+         * @param baseType complex type
+         * @param presetChars  preset char
+         * @param type PROCESS_ATTRIBUTE or PROCESS_TAG
+         * @param filterFunction if need to filter attribute tag containing specific attribute(ex: attribute tag with use="required" attribute)
+         * @return collection of elements(String)
+         */
         private function processExtension(baseType:String, presetChars:String, type:String, filterFunction:Function):ArrayCollection {
             if (m_currentSchemaDescription != null) {
                 var result:ArrayCollection = new ArrayCollection();
@@ -338,6 +426,13 @@ package fr.adioss.autocompletion {
             return null;
         }
 
+        /**
+         * process sequence type tags
+         * @param sequence sequence type tag
+         * @param presetChars  preset char
+         * @param type PROCESS_ATTRIBUTE or PROCESS_TAG
+         * @return collection of elements(String)
+         */
         private function processSequence(sequence:XML, presetChars:String, type:String):ArrayCollection {
             var result:ArrayCollection = new ArrayCollection();
             var sequenceChildren:XMLList = sequence.children();
@@ -358,6 +453,13 @@ package fr.adioss.autocompletion {
             return result;
         }
 
+        /**
+         * process sequence type tags
+         * @param choice choice type tag
+         * @param presetChars  preset char
+         * @param type PROCESS_ATTRIBUTE or PROCESS_TAG
+         * @return collection of elements(String)
+         */
         private function processChoice(choice:XML, presetChars:String, type:String):ArrayCollection {
             var result:ArrayCollection = new ArrayCollection();
             var choiceChildren:XMLList = choice.children();
@@ -372,6 +474,11 @@ package fr.adioss.autocompletion {
             return result;
         }
 
+        /**
+         * determine if prefix is set
+         * @param parentTagName parent tag name
+         * @return boolean
+         */
         private function isParentTagNameCorrespondToSearch(parentTagName:String):Boolean {
             return !(m_currentSchemaDescription.prefix != DEFAULT_SCHEMA_INDEX && parentTagName.indexOf(m_currentSchemaDescription.prefix) != 0);
         }
@@ -412,6 +519,19 @@ package fr.adioss.autocompletion {
         }
 
         /**
+         * extract item from source collection that are not include in target collection
+         */
+        private static function notIntersect(source:ArrayCollection, target:ArrayCollection):ArrayCollection {
+            var result:ArrayCollection = new ArrayCollection();
+            for each (var item:String in source) {
+                if (!target.contains(item)) {
+                    result.addItem(item);
+                }
+            }
+            return result;
+        }
+
+        /**
          * No length property on dictinary...
          * @param dictionary
          * @return
@@ -425,7 +545,7 @@ package fr.adioss.autocompletion {
         }
 
         /**
-         * Use to generate first tag with
+         * Use to generate first tag with schema declarations
          * @param rootTagName
          * @return
          */

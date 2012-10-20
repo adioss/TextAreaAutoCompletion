@@ -108,11 +108,11 @@ package fr.adioss.autocompletion {
         }
 
         [Test]
-        public function shouldRetrieveFirstElementWithoutParent():void {
+        public function shouldRetrieveRootElementsWithoutParent():void {
             var position:XmlBeginTagPosition = new XmlBeginTagPosition("", "xs1:");
             var result:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position, null);
             Assert.assertNotNull(result);
-            Assert.assertTrue(result.contains("xs1:shiporder"));
+            Assert.assertTrue(result.contains("shiporder"));
         }
     }
 }
