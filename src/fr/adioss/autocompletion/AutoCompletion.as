@@ -211,12 +211,15 @@ package fr.adioss.autocompletion {
          */
         private function refreshAfterHorizontalNavigation(keyCode:uint):void {
             if (m_currentTypedWord.length > 0) {
+                var endPosition:int = 0;
                 if (keyCode == Keyboard.LEFT) {
                     m_currentTypedWord = m_currentTypedWord.substr(0, m_currentTypedWord.length - 1);
+                    endPosition = m_endPosition > 0 ? m_endPosition - 1 : m_endPosition;
                 } else {
                     m_currentTypedWord += m_textArea.text.substr(m_endPosition, 1);
+                    endPosition = m_endPosition + 1;
                 }
-                refreshListAndPosition(m_endPosition > 0 ? m_endPosition - 1 : m_endPosition);
+                refreshListAndPosition(endPosition);
             } else {
                 removeAutoCompleteCanvas();
             }
