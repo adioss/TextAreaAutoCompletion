@@ -137,7 +137,7 @@ package fr.adioss.autocompletion {
                 } else if (m_currentXmlPosition is XmlBeginTagPosition) {
                     var position:XmlBeginTagPosition = XmlBeginTagPosition(m_currentXmlPosition);
                     var tags:ArrayCollection = m_schemaParser.retrieveTagCompletionInformation(position, null);
-                    if (tags != null && tags.contains(position.presetChars)) {
+                    if (tags != null && tags.contains(m_schemaParser.deleteSchemaPrefixOnPresetChars(position.presetChars))) {
                         clauseCurrentTag(lastTypedChar, position.presetChars);
                     }
                 }
@@ -160,6 +160,7 @@ package fr.adioss.autocompletion {
                 tagCompletions = m_schemaParser.retrieveAttributeCompletionInformation(XmlAttributePosition(m_currentXmlPosition));
             }
             if (tagCompletions != null && tagCompletions.length > 0) {
+                presetChars = m_schemaParser.deleteSchemaPrefixOnPresetChars(presetChars);
                 initializeAutoCompleteList(tagCompletions.source, presetChars);
                 var presetOffset:int = havePreset ? presetChars.length : 0;
                 var currentPosition:Point = TextAreaHelper.getTextAreaCurrentGlobalCursorPosition(m_textArea, presetOffset);

@@ -205,7 +205,7 @@ package fr.adioss.autocompletion {
                     }
                     return findAvailableChildren(parentTagName, presetChars, PROCESS_TAG);
                 } else {
-                    return m_currentSchemaDescription.rootTagNames;
+                    return filterByPresetChars(m_currentSchemaDescription.rootTagNames, presetChars);
                 }
             }
             return null;
@@ -519,6 +519,28 @@ package fr.adioss.autocompletion {
 
         private static function parseBooleanAttribute(complexType:XML, toParse:String):Boolean {
             return (complexType.@[toParse] == "true");
+        }
+
+        public function deleteSchemaPrefixOnPresetChars(presetChars:String):String {
+            var cleanPresetChars:String = presetChars;
+            if (presetChars.indexOf(m_currentSchemaDescription.prefix + ":") == 0) {
+                cleanPresetChars = presetChars.slice(m_currentSchemaDescription.prefix.length + 1, cleanPresetChars.length);
+            }
+            return cleanPresetChars;
+        }
+
+        private static function filterByPresetChars(collection:ArrayCollection, presetChars:String):ArrayCollection {
+            var result:ArrayCollection = new ArrayCollection();
+            if (presetChars == null || presetChars == "") {
+                result = collection;
+            } else {
+                for each (var item:String in collection) {
+                    if (item.indexOf(presetChars) != 0) {
+                        result.addItem(item);
+                    }
+                }
+            }
+            return result;
         }
 
         /**
