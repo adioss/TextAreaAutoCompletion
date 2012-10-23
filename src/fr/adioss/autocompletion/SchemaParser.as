@@ -72,21 +72,18 @@ package fr.adioss.autocompletion {
                 schemaDescription.prefix = prefix;
 
                 // looking for parent tag
-                var completePossibleChildTags:ArrayCollection = new ArrayCollection();
+                var possibleChildTags:ArrayCollection = new ArrayCollection();
                 var childWithNoParentTags:ArrayCollection = new ArrayCollection();
                 if (schemaDescription.elements != null) {
                     for (var elementName:String in schemaDescription.elements) {
-                        if (countDictionaryKeys(schemaDescription.elements) == 1) {
-                            childWithNoParentTags.addItem(elementName);
-                            break;
-                        }
                         if (!childWithNoParentTags.contains(elementName)) {
+                            // find possible children => elementName correspond to parentTagName
                             var tagList:ArrayCollection = retrieveTagCompletionInformation(new XmlBeginTagPosition(elementName, ""), schemaDescription);
                             if (tagList != null && tagList.length > 0) {
-                                completePossibleChildTags.addAll(tagList);
-                                childWithNoParentTags.addItem(elementName);
-                                childWithNoParentTags = notIntersect(childWithNoParentTags, completePossibleChildTags);
+                                possibleChildTags.addAll(tagList);
                             }
+                            childWithNoParentTags.addItem(elementName);
+                            childWithNoParentTags = notIntersect(childWithNoParentTags, possibleChildTags);
                         } else {
                             childWithNoParentTags.removeItemAt(childWithNoParentTags.getItemIndex(elementName));
                         }
@@ -98,7 +95,6 @@ package fr.adioss.autocompletion {
             } else {
                 trace("No targetNamespace: ignore it");
             }
-
         }
 
         /**
@@ -466,9 +462,16 @@ package fr.adioss.autocompletion {
             for each (var choiceChild:XML in choiceChildren) {
                 var choiceName:String = choiceChild.localName();
                 if ("element" == choiceName && type == PROCESS_TAG) {
-                    var ref:String = choiceChild.attribute("ref");
-                    var item:String = ref.replace(m_currentSchemaDescription.schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
-                    appendItem(result, item, presetChars);
+                    var refAttribute:String = choiceChild.attribute("ref");
+                    var typeAttribute:String = choiceChild.attribute("type");
+                    var nameAttribute:String = choiceChild.attribute("name");
+                    var item:String;
+                    if (refAttribute != null && refAttribute != "") {
+                        item = refAttribute.replace(m_currentSchemaDescription.schemaInformation.schemaNameSpace.prefix.toString() + ":", "");
+                        appendItem(result, item, presetChars);
+                    } else if (typeAttribute != null && typeAttribute != "" && nameAttribute != null && nameAttribute != "") {
+                        appendItem(result, nameAttribute, presetChars);
+                    }
                 }
             }
             return result;

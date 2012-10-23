@@ -52,6 +52,11 @@ package fr.adioss.autocompletion {
             Assert.assertTrue(result.contains("loadBalance"));
             Assert.assertTrue(result.contains("log"));
             Assert.assertTrue(result.contains("loop"));
+
+            position = new XmlBeginTagPosition("marshal", "");
+            result = m_schemaParser.retrieveTagCompletionInformation(position, null);
+            Assert.assertNotNull(result);
+            Assert.assertEquals(result.length, 24);
         }
 
         [Test]
