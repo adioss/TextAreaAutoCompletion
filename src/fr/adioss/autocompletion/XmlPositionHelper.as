@@ -94,8 +94,8 @@ package fr.adioss.autocompletion {
                         return new XmlContentPosition();
                     case "\"":
                         collectedTagName = "";
-                        if (!isSpaceFound && !isAttributeEditionPosition && !attributeNameCollected) {
-                            isAttributeEditionPosition = true;
+                        if (!isSpaceFound && !attributeNameCollected) {
+                            isAttributeEditionPosition = !isAttributeEditionPosition;
                         }
                         isQuoteFound = true;
                         break;

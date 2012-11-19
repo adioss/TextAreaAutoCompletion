@@ -132,7 +132,7 @@ package fr.adioss.autocompletion {
             if (m_keyPressedBeforeKeyDown != "" && lastTypedChar != null && lastTypedChar != "" && (isSlashChar(lastTypedChar)
                     || isGreaterChar(lastTypedChar))) {
                 m_currentXmlPosition = m_xmlPositionHelper.getCurrentXmlPosition(-1);
-                if (m_currentXmlPosition is XmlAttributePosition) {
+                if (m_currentXmlPosition is XmlAttributePosition && !(m_currentXmlPosition is XmlAttributeEditionPosition)) {
                     clauseCurrentTag(lastTypedChar, XmlAttributePosition(m_currentXmlPosition).currentTagName);
                 } else if (m_currentXmlPosition is XmlBeginTagPosition) {
                     var position:XmlBeginTagPosition = XmlBeginTagPosition(m_currentXmlPosition);
