@@ -100,7 +100,7 @@ package fr.adioss.autocompletion {
                         isQuoteFound = true;
                         break;
                     case "=" :
-                        if (!attributeNameCollected) {
+                        if (!attributeNameCollected && isQuoteFound) {
                             attributeNameCollected = true;
                             attributeEditionContent = collectedAttributeName;
                             collectedAttributeName = "";

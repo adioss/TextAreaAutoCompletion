@@ -303,12 +303,14 @@ package fr.adioss.autocompletion {
                 isClosedTag = true;
                 textToAppend += (">");
             }
-            var deltaToRetrieveEndPart:int = (xmlEndTagPosition.associatedTagName.length - (
-                    xmlEndTagPosition.presetChars != null ? xmlEndTagPosition.presetChars.length : 0)) + (isClosedTag ? 1 : 0);
-            m_endPosition = centerPosition + textToAppend.length;
-            var textAreaContent:String = content.substring(0, centerPosition) + (textToAppend) + (content.substring(m_endPosition - deltaToRetrieveEndPart,
-                                                                                                                    content.length));
-            m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
+            if (xmlEndTagPosition.associatedTagName != null) {
+                var deltaToRetrieveEndPart:int = (xmlEndTagPosition.associatedTagName.length - (
+                        xmlEndTagPosition.presetChars != null ? xmlEndTagPosition.presetChars.length : 0)) + (isClosedTag ? 1 : 0);
+                m_endPosition = centerPosition + textToAppend.length;
+                var textAreaContent:String = content.substring(0, centerPosition) + (textToAppend) + (content.substring(m_endPosition - deltaToRetrieveEndPart,
+                                                                                                                        content.length));
+                m_textArea.callLater(setTextAreaCallBack, new Array(textAreaContent));
+            }
         }
 
         /**
