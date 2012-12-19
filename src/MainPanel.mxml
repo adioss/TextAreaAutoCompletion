@@ -6,9 +6,6 @@
         import fr.adioss.autocompletion.*;
 
         import mx.collections.ArrayCollection;
-        import mx.core.DragSource;
-        import mx.events.DragEvent;
-        import mx.managers.DragManager;
 
         private const THIRD_STEP_TEXT:String = "3 - Try to type '<' and Ctrl+Space between root tag(here, in 'shiporder' tag)";
 
@@ -45,7 +42,6 @@
             m_schemas.addItem({name: m_fileReference.name, file: file});
             m_fileReference = null;
             refreshSchemas();
-
         }
 
         public function removeSchema(event:MouseEvent):void {
@@ -65,44 +61,6 @@
             }
             m_autoCompletion = new AutoCompletion(textArea, schemas);
             textArea.text = m_autoCompletion.generateHeaderForSchemaDescriptions(rootTagName.text);
-        }
-
-        // Embed icon image.
-        [Embed(source='assets/globe.jpg')]
-        public var globeImage:Class;
-
-        // The mouseMove event handler for the Image control
-        // initiates the drag-and-drop operation.
-        private static function mouseMoveHandler(event:MouseEvent):void {
-            var dragInitiator:Image = Image(event.currentTarget);
-            var ds:DragSource = new DragSource();
-            ds.addData(dragInitiator, "img");
-
-            DragManager.doDrag(dragInitiator, ds, event);
-        }
-
-        // The dragEnter event handler for the Canvas container
-        // enables dropping.
-        private static function dragEnterHandler(event:DragEvent):void {
-            if (event.dragSource.hasFormat("img")) {
-                DragManager.acceptDragDrop(Canvas(event.currentTarget));
-            }
-        }
-
-        // The dragDrop event handler for the Canvas container
-        // sets the Image control's position by
-        // "dropping" it in its new location.
-        private static function dragDropHandler(event:DragEvent):void {
-            Image(event.dragInitiator).x = Canvas(event.currentTarget).mouseX;
-            Image(event.dragInitiator).y = Canvas(event.currentTarget).mouseY;
-        }
-
-        private function button1_clickHandler(event:MouseEvent):void {
-            var connector1:Connector = new Connector(myimg, myimg2);
-            connector1.usePointer = true;
-            connector1.lineThickness = 3;
-
-            v1.addChild(connector1);
         }
         ]]>
     </mx:Script>
@@ -138,22 +96,6 @@
                     </mx:columns>
                 </mx:DataGrid>
                 <mx:Label text="{THIRD_STEP_TEXT}"/>
-                <mx:Button click="button1_clickHandler(event)"></mx:Button>
-                <mx:Canvas id="v1"
-                           width="500" height="500"
-                           borderStyle="solid"
-                           backgroundColor="#DDDDDD"
-                           dragEnter="dragEnterHandler(event);"
-                           dragDrop="dragDropHandler(event);">
-
-                    <!-- The image is the drag initiator. -->
-                    <mx:Image id="myimg"
-                              source="@Embed(source='assets/globe.jpg')"
-                              mouseMove="mouseMoveHandler(event);"/>
-                    <mx:Image id="myimg2"
-                              source="@Embed(source='assets/globe.jpg')"
-                              mouseMove="mouseMoveHandler(event);"/>
-                </mx:Canvas>
             </mx:VBox>
         </mx:HBox>
     </mx:VBox>
